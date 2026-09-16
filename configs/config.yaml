@@ -1,11 +1,7 @@
 target: loan_status
 date_col: issue_d
-temporal_split: { train: "2007-2014", val: "2015-2016", test: "2017-2018" }
-leakage_blocklist:
-  [
-    recoveries,
-    collection_recovery_fee,
-    last_pymnt_d,
-    last_pymnt_amnt,
-    total_rec_prncp,
-  ]
+temporal_split: {train: '2007-2014', val: '2015-2016', test: '2017-2018'}
+leakage_blocklist: [recoveries, collection_recovery_fee, last_pymnt_d, last_pymnt_amnt, total_rec_prncp]
+LGD: 0.6
+op_cost: 500
+threshold: 0.05
