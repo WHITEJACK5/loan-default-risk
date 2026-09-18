@@ -36,7 +36,7 @@ Train 5-fold isotonic 3 min on 451k, API p50 126ms p95 172ms mean 129ms \(bench.
 No Home Credit data, LGD 0.6 fixed, no real Postgres/Redis, drift -0.04 PR val->test needs quarterly retrain.
 
 ## Resume Bullet
-Loan Default Risk API - XGBoost isotonic 1.34M PR 0.413 Brier 0.155 profit +7.4M thr 0.05 SHAP FastAPI Docker MLflow [Demo] [GitHub]
+Loan Default Risk API - XGBoost isotonic 1.34M PR 0.413 Brier 0.155 profit +7.4M thr 0.05 SHAP FastAPI Docker MLflow [Demo](https://whitejack5-loan-default-risk.hf.space) [GitHub](https://github.com/WHITEJACK5/loan-default-risk)
 
 ## Roadmap
 
