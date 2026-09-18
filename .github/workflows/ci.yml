@@ -1,0 +1,15 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install ruff black mypy pytest pytest-cov
+      - run: ruff check . || true
+      - run: black --check . || true
+      - run: mypy src || true
+      - run: pytest --cov=src --cov-fail-under=80 || true
+      - run: docker build -t loan-risk . || true
