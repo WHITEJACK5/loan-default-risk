@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from pathlib import Path
 
 def psi(expected, actual, buckets=10):
     breaks = np.histogram_bin_edges(expected, bins=buckets)
@@ -17,6 +18,17 @@ def main():
     for col in ["int_rate","dti","annual_inc","revol_util"]:
         v = psi(val[col].dropna(), test[col].dropna())
         print(f"{col} PSI val->test {v:.3f} {'drift' if v>0.2 else 'ok'}")
+    # Evidently HTML per gita Tech Stack
+    try:
+        from evidently.legacy.report import Report
+        from evidently.legacy.metric_preset import DataDriftPreset
+        report = Report(metrics=[DataDriftPreset()])
+        report.run(reference_data=val[["int_rate","dti","annual_inc","revol_util"]], current_data=test[["int_rate","dti","annual_inc","revol_util"]])
+        Path("docs").mkdir(exist_ok=True)
+        report.save_html("docs/drift_report.html")
+        print("saved docs/drift_report.html")
+    except Exception as e:
+        print(f"evidently fallback: {e}")
 
 if __name__=="__main__":
     main()
