@@ -7,3 +7,12 @@ data/raw/*
 .env
 mlruns/
 .ipynb_checkpoints/
+artifacts/
+*.joblib
+mlflow.db
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.DS_Store
