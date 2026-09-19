@@ -1,5 +1,5 @@
 gradio
-scikit-learn>=1.6
+scikit-learn>=1.9.1
 lightgbm
 pandas
 pyarrow
