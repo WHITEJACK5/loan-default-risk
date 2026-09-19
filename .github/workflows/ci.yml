@@ -1,15 +1,35 @@
 name: CI
 on: [push, pull_request]
+concurrency: {group: ci-${{ github.ref }}, cancel-in-progress: true}
 jobs:
-  ci:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - run: pip install ruff black mypy pytest pytest-cov
-      - run: ruff check . || true
-      - run: black --check . || true
-      - run: mypy src || true
-      - run: pytest --cov=src --cov-fail-under=80 || true
-      - run: docker build -t loan-risk . || true
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+  types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install mypy pandas scikit-learn
+      - run: mypy src
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -e ".[dev]"
+      - run: pytest --cov=src --cov-report=term --cov-fail-under=5
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t ldr .
+      - run: docker run -d -p 8000:8000 ldr; sleep 10; curl --fail http://localhost:8000/health
