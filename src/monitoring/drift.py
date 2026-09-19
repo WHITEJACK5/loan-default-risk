@@ -18,7 +18,7 @@ def main():
     for col in ["int_rate","dti","annual_inc","revol_util"]:
         v = psi(val[col].dropna(), test[col].dropna())
         print(f"{col} PSI val->test {v:.3f} {'drift' if v>0.2 else 'ok'}")
-    # Evidently HTML per gita Tech Stack
+    # Evidently HTML per guide Tech Stack
     try:
         from evidently.legacy.report import Report
         from evidently.legacy.metric_preset import DataDriftPreset
@@ -32,3 +32,4 @@ def main():
 
 if __name__=="__main__":
     main()
+
