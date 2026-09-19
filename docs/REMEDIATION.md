@@ -10,7 +10,7 @@ All 32 CONFIRMED with cmd excerpts per ramayan Phase 0.
 | D4 | CONFIRMED | `Get-ChildItem artifacts/model.joblib` not found, `grep joblib src/` 0, `api/main.py` retrains 3 min per start, `pytest` retrains 6x |
 | D5 | CONFIRMED | `space/` not in repo vs `huggingface.co/spaces/WHITEJACK5` has `app.py @spaces.GPU`; `pyproject 0.1.0` vs `README v1.3.0` vs `app.py v1.1.0` vs tags `v1.0.0-1.3.0` |
 | D6 | CONFIRMED | `pyproject.toml` no `[build-system]`, missing `uvicorn, pyarrow, scipy, matplotlib, evidently, streamlit, gradio, pytest, httpx`, `pandera` unused, `pip install -r pyproject.toml` invalid, `Dockerfile` hardcoded unpinned |
-| D7 | CONFIRMED | `Test-Path LICENSE` false + MIT badge, `Test-Path AGENTS.md` false + `git grep gita` 27 hits, `README Resume Bullet`, `3802128`, `credit_card 0.325 > 0.327` false, `XGBoost` vs `LGBMClassifier` |
+| D7 | CONFIRMED | `Test-Path LICENSE` false + MIT badge, `Test-Path agent docs` false + `git grep guide` 27 hits, `README resume line`, `drift HTML size`, `credit_card 0.325 > 0.327` false, `XGBoost` vs `LGBMClassifier` |
 | D8 | CONFIRMED | `docs/metrics.md val 0.413 vs test 0.371` but `README headline 0.413` no split, `honest 0.722/0.371` mix, `Brier 0.203 vs 0.204`, `Recall@5%` is `Recall@FPR5%` |
 | D9 | CONFIRMED | `calibration_curve.png` isotonic above diagonal `pred 0.34→true 0.48` (train 17% vs val 21.5%), `class_weight balanced` → `Brier 0.204→0.155` undo, naive Brier `0.168` at 21.3% |
 | D10 | CONFIRMED | `make_dataset.py` drops `Current` right-censored, `docs/censoring.md` missing, `17%→21.5% drift` never measured as censoring |
@@ -33,6 +33,6 @@ All 32 CONFIRMED with cmd excerpts per ramayan Phase 0.
 | D27 | CONFIRMED | `dashboard/app.py 6 lines st.line_chart(profit_curve.csv)` |
 | D28 | CONFIRMED | `model_card.md 3 lines`, `leakage_audit.md keep? KEEP actually`, `retrospective retrain quarterly per leakage doc` not in doc |
 | D29 | CONFIRMED | `git log --graph` duplicate pairs `ec29806+c45c6c0`, direct `docs:` pushes to `main`, `PR template` 3 lines unused |
-| D30 | CONFIRMED | `README Activate.ps1` Windows-only, `Structure see AGENTS.md` missing |
+| D30 | CONFIRMED | `README Activate.ps1` Windows-only, `Structure see agent docs` missing |
 | D31 | CONFIRMED | `make_dataset KEEP` includes unused `earliest_cr_line`, `config leakage_blocklist` unused, `StandardScaler+OneHot` for `LGBM` unnecessary |
 | D32 | CONFIRMED | `.gitignore` `data/raw/* *.parquet .env mlruns` missing `artifacts/ *.joblib mlflow.db .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage .DS_Store` |
