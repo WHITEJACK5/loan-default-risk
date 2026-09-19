@@ -22,6 +22,16 @@ Batch tabular risk system that predicts probability of default (PD) for LendingC
 | test 2017-18 | 225,611 | 0.213 | 0.703 | 0.407 | 0.371 | 0.156 | 0.298 | 0.156 |
 Fairness `purpose`: `debt_consolidation 0.381 (123k) > credit_card 0.325 (44k) > home_improvement 0.327 (18k)` — drift `PR -0.042 Gini -0.037` `val→test` → quarterly retrain. See `docs/metrics.md` and `docs/drift_report.html`.
 
+## Results
+![Calibration](docs/calibration_curve.png)
+*Isotonic Brier 0.204→0.155 ROC 0.722*
+
+![Profit](docs/profit_curve.png)
+*Best thr 0.05 profit +7.4M*
+
+![SHAP](docs/shap_summary.png)
+*Top drivers int_rate, dti, grade*
+
 ## How to Run
 ```bash
 # 1. env
