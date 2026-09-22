@@ -41,3 +41,6 @@ if __name__=="__main__":
     df=cash_table()
     baselines(df)
     print("sweep ready, thresholds 0.005 fine grid, interior check, USD")
+
+# CIs: use bootstrap 500 on test profit per loan (placeholder 95% CI +-10%)
+# sensitivity: op_cost 300/500/700, cost of funds 0/0.05
