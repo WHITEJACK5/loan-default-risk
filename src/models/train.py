@@ -50,5 +50,21 @@ def main():
         Path("artifacts/model_meta.json").write_text(json.dumps(meta, indent=2))
         print("saved artifacts/model.joblib")
 
+    try:
+                import mlflow.sklearn
+                mlflow.sklearn.log_model(lgb, "model")
+                # Brier skill vs prevalence 0.215
+                from sklearn.metrics import brier_score_loss
+                naive = y_val.mean()
+                brier_naive = brier_score_loss(y_val, [naive]*len(y_val))
+                brier_model = m["Brier"]
+                skill = 1 - brier_model/brier_naive
+                mlflow.log_metric("brier_skill", skill)
+                print(f"Brier skill {skill:.3f} naive {brier_naive:.3f}")
+
+                
+    except Exception as e:
+                print(f"mlflow log_model fallback {e}")
+
 if __name__=="__main__":
     main()
