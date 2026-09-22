@@ -46,5 +46,11 @@ def main():
         Path("artifacts/model_meta.json").write_text(json.dumps(meta, indent=2))
         print("saved artifacts/model.joblib")
 
+    try:
+            import mlflow.sklearn
+            mlflow.sklearn.log_model(lgb, "model")
+    except Exception as e:
+            print(f"mlflow log_model {e}")
+
 if __name__=="__main__":
     main()
