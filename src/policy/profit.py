@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from sklearn.pipeline import Pipeline
+from sklearn.calibration import CalibratedClassifierCV
+from src.loan_default_risk.modeling import build_model
 
 def profit_curve(proba, y, loan_amnt, int_rate, LGD=0.6, op_cost=500):
     thresholds = np.arange(0.05, 0.96, 0.05)
@@ -23,15 +26,11 @@ def profit_curve(proba, y, loan_amnt, int_rate, LGD=0.6, op_cost=500):
 def main():
     val = pd.read_parquet("data/processed/val.parquet")
     train = pd.read_parquet("data/processed/train.parquet")
-    from sklearn.pipeline import Pipeline
-    from sklearn.calibration import CalibratedClassifierCV
-    from lightgbm import LGBMClassifier
-    from src.features.build_features import get_preprocessor
     Xt = train.drop(columns=["target","loan_status","issue_d","issue_year"])
     yt = train["target"]
     Xv = val.drop(columns=["target","loan_status","issue_d","issue_year"])
     yv = val["target"]
-    base = Pipeline([("pre", get_preprocessor()), ("clf", LGBMClassifier(class_weight="balanced", n_estimators=500, learning_rate=0.05, verbose=-1))])
+    base = build_model(lender_side="B")
     cal = CalibratedClassifierCV(estimator=base, method="isotonic", cv=5)
     cal.fit(Xt, yt)
     proba = cal.predict_proba(Xv)[:,1]
