@@ -6,7 +6,7 @@ from pathlib import Path
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss, roc_curve
-from lightgbm import LGBMClassifier
+from src.loan_default_risk.modeling import build_model
 from src.features.build_features import get_preprocessor
 
 def load():
@@ -20,13 +20,12 @@ def metrics(y, p):
     fpr, tpr, _ = roc_curve(y, p)
     ks = max(tpr - fpr)
     roc = roc_auc_score(y, p)
-    return {"ROC": roc, "Gini": 2*roc-1, "PR-AUC": average_precision_score(y,p), "Brier": brier_score_loss(y,p), "KS": ks, "Recall@5%": max([t for f,t in zip(fpr,tpr) if f<=0.05], default=0)}
+    return {"ROC": roc, "Gini": 2*roc-1, "PR-AUC": average_precision_score(y,p), "Brier": brier_score_loss(y,p), "KS": ks}
 
 def main():
     X_train, y_train, X_val, y_val = load()
     pre = get_preprocessor()
     import os
-    from pathlib import Path
     Path("mlruns").mkdir(exist_ok=True)
     os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
     import mlflow
@@ -35,10 +34,7 @@ def main():
     with mlflow.start_run(run_name="baseline"):
         log = Pipeline([("pre", pre), ("clf", LogisticRegression(class_weight="balanced", max_iter=500))])
         log.fit(X_train, y_train)
-        from sklearn.metrics import roc_auc_score as ras
-        proba = log.predict_proba(X_val)[:,1]
-        print(f"Logistic ROC={ras(y_val, proba):.3f}")
-        lgb = Pipeline([("pre", pre), ("clf", LGBMClassifier(class_weight="balanced", n_estimators=500, learning_rate=0.05, verbose=-1))])
+        lgb = build_model(lender_side="A")
         lgb.fit(X_train, y_train)
         proba = lgb.predict_proba(X_val)[:,1]
         m = metrics(y_val, proba)
@@ -49,22 +45,6 @@ def main():
         meta = {"git_sha": subprocess.check_output(["git","rev-parse","HEAD"]).decode().strip(), "data_sha256": open("data/README.md").read().split("sha256:")[1].split()[0], "features": X_train.columns.tolist()}
         Path("artifacts/model_meta.json").write_text(json.dumps(meta, indent=2))
         print("saved artifacts/model.joblib")
-
-    try:
-                import mlflow.sklearn
-                mlflow.sklearn.log_model(lgb, "model")
-                # Brier skill vs prevalence 0.215
-                from sklearn.metrics import brier_score_loss
-                naive = y_val.mean()
-                brier_naive = brier_score_loss(y_val, [naive]*len(y_val))
-                brier_model = m["Brier"]
-                skill = 1 - brier_model/brier_naive
-                mlflow.log_metric("brier_skill", skill)
-                print(f"Brier skill {skill:.3f} naive {brier_naive:.3f}")
-
-                
-    except Exception as e:
-                print(f"mlflow log_model fallback {e}")
 
 if __name__=="__main__":
     main()
