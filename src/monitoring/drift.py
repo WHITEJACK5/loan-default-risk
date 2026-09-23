@@ -27,3 +27,14 @@ def main():
 
 if __name__=="__main__":
     main()
+
+# categorical PSI on grade shares
+def cat_psi(ref, cur):
+    ref_c = ref.value_counts(normalize=True)
+    cur_c = cur.value_counts(normalize=True)
+    all_cats = set(ref_c.index) | set(cur_c.index)
+    s=0
+    for c in all_cats:
+        e = ref_c.get(c, 1e-4); a = cur_c.get(c, 1e-4)
+        s += (a-e)*np.log(a/e)
+    return s
