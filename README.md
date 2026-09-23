@@ -1,4 +1,4 @@
-﻿# loan-default-risk â€” PD + Profit + SHAP + A/B
+# loan-default-risk -- PD + Profit + SHAP + A/B
 
 [![CI](https://github.com/WHITEJACK5/loan-default-risk/actions/workflows/ci.yml/badge.svg)](https://github.com/WHITEJACK5/loan-default-risk/actions)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue)](pyproject.toml)
