@@ -18,12 +18,14 @@ Batch tabular risk system that predicts probability of default (PD) for LendingC
 `data/raw/392MB` → `src/data/make_dataset.py` (`%b-%Y`, leakage-safe, parquet) → `src/features/build_features.py` (12 num median+scale, 8 cat most_frequent+OneHot) → `src/models/train.py` (Logistic `ROC 0.719 PR 0.408` → LightGBM `0.722/0.413` `class_weight=balanced`) → `src/models/calibrate.py` (isotonic cv5 `Brier 0.204→0.155` `ROC 0.722`) → `src/policy/profit.py` (`LGD 0.6 EAD loan_amnt, thr 0.05 profit +7.4M approve 7.9% default 3.5%`) → `src/api/main.py` (`/predict /explain /experiment/assign`, `src/models/explain_shap.py` top3) → `src/monitoring/drift.py` (PSI + Evidently) → `Docker + MLflow`
 
 ## Metrics
+<!-- METRICS:START -->
 
 | Split        | n       | dr    | ROC   | Gini  | PR-AUC | Brier | KS    | Recall@5% |
 | ------------ | ------- | ----- | ----- | ----- | ------ | ----- | ----- | --------- |
 | val 2015-16  | 668,640 | 0.215 | 0.722 | 0.444 | 0.413  | 0.155 | 0.323 | 0.198     |
 | test 2017-18 | 225,611 | 0.213 | 0.703 | 0.407 | 0.371  | 0.156 | 0.298 | 0.156     |
 
+<!-- METRICS:END -->
 Fairness `purpose`: `debt_consolidation 0.381 (123k), credit_card 0.325 (44k), home_improvement 0.327 (18k)` — drift `PR -0.042 Gini -0.037` `val→test` → quarterly retrain. See `docs/metrics.md` and `docs/drift_report.html`.
 
 ## Results
@@ -78,3 +80,4 @@ Project Structure — README, pyproject, Dockerfile, docker-compose, .github/wor
 License
 MIT
 ```
+

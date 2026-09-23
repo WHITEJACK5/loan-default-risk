@@ -1,4 +1,22 @@
 # Model Card
-- Brier 0.155 test 0.156, PR 0.413->0.371
-- Threshold 0.05 profit +7.4M
-- Limitations LGD 0.6 fixed
+## Intended use
+PD scoring for LendingClub accepted loans
+## Out of scope
+Reject inference, no protected attributes
+## Data
+2.26M raw 1.34M filtered, temporal split
+## Features
+24 origination ALLOW, no leakage
+## Metrics
+val ROC 0.722 PR 0.413 Brier 0.155 test 0.703/0.371/0.156 with CIs
+## Calibration
+isotonic cv5 Brier skill
+## Segment
+purpose ROC debt 0.381
+## Limitations
+censoring, selection bias, no protected
+## Monitoring
+PSI quantile, retrain quarterly
+## Version
+v2.0.0
+
