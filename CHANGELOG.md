@@ -5,5 +5,6 @@
 
 
 ## v2.0.0 - Remediation
-- Fixed: CI fail-fast, scrub gita, Docker, pyproject, notebooks, demo, config, censoring, pandera, allow-list, scaler, tuning, A vs B, CIs, cash table, lifespan, schemas, SHAP, latency, experiments, monitoring, dashboard, tests, README generator, model_card
+- Fixed: CI fail-fast, scrub guide, Docker, pyproject, notebooks, demo, config, censoring, pandera, allow-list, scaler, tuning, A vs B, CIs, cash table, lifespan, schemas, SHAP, latency, experiments, monitoring, dashboard, tests, README generator, model_card
+
 

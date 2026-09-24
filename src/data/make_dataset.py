@@ -5,7 +5,7 @@ from src.loan_default_risk.config import settings
 RAW = Path("data/raw/accepted_2007_to_2018Q4.csv.gz")
 OUT = Path("data/processed")
 
-# allow-list from gita leakage-safe cols, assert no blocklisted survives
+# allow-list from guide leakage-safe cols, assert no blocklisted survives
 ALLOW = ["loan_amnt","term","int_rate","installment","grade","sub_grade","emp_length","home_ownership","annual_inc","verification_status","issue_d","loan_status","purpose","addr_state","dti","delinq_2yrs","earliest_cr_line","fico_range_low","fico_range_high","inq_last_6mths","open_acc","revol_bal","revol_util","total_acc"]
 
 def main():
@@ -25,3 +25,4 @@ def main():
 
 if __name__=="__main__":
     main()
+

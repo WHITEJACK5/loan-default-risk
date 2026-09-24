@@ -1,5 +1,2 @@
-# Metrics — generated from docs/results/metrics.json
-<!-- METRICS:START -->
-| val | 0.722 | 0.413 | 0.155 |
-| test | 0.703 | 0.371 | 0.156 |
-<!-- METRICS:END -->
+# Metrics — see docs/results/metrics.json for generated metrics
+Metrics are generated from docs/results/metrics.json via scripts/render_readme.py, not hardcoded here. See README <!-- METRICS:START --> block and docs/results/metrics.json for ROC, PR-AUC, Brier.
