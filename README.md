@@ -15,7 +15,7 @@ Batch tabular risk system that predicts probability of default (PD) for LendingC
 ## Architecture
 
 ![Architecture](docs/architecture.png)
-`data/raw/392MB` â†’ `src/data/make_dataset.py` (`%b-%Y`, leakage-safe, parquet) â†’ `src/features/build_features.py` (12 num median+scale, 8 cat most_frequent+OneHot) â†’ `src/models/train.py` (Logistic `ROC 0.719 PR 0.408` â†’ LightGBM `0.722/0.413` `class_weight=balanced`) â†’ `src/models/calibrate.py` (isotonic cv5 `Brier 0.204â†’0.155` `ROC 0.722`) â†’ `src/policy/profit.py` (`LGD 0.6 EAD loan_amnt, thr 0.05 profit +7.4M approve 7.9% default 3.5%`) â†’ `src/api/main.py` (`/predict /explain /experiment/assign`, `src/models/explain_shap.py` top3) â†’ `src/monitoring/drift.py` (PSI + Evidently) â†’ `Docker + MLflow`
+`data/raw/392MB` â†’ `src/data/make_dataset.py` (`%b-%Y`, leakage-safe, parquet) â†’ `src/features/build_features.py` (12 num median+scale, 8 cat most_frequent+OneHot) â†’ `src/models/train.py` (Logistic â†’ LightGBM `class_weight=balanced`) â†’ `src/models/calibrate.py` (isotonic cv5 `Brierâ†’0.155` `ROC 0.722`) â†’ `src/policy/profit.py` (`LGD 0.6 EAD loan_amnt, thr 0.05 profit approve 7.9% default 3.5%`) â†’ `src/api/main.py` (`/predict /explain /experiment/assign`, `src/models/explain_shap.py` top3) â†’ `src/monitoring/drift.py` (PSI + Evidently) â†’ `Docker + MLflow`
 
 ## Metrics
 <!-- METRICS:START -->
@@ -27,10 +27,10 @@ Fairness `purpose`: `debt_consolidation 0.381 (123k), credit_card 0.325 (44k), h
 ## Results
 
 ![Calibration](docs/calibration_curve.png)
-_Isotonic Brier 0.204â†’0.155 ROC 0.722_
+_Isotonic Brierâ†’0.155 ROC 0.722_
 
 ![Profit](docs/profit_curve.png)
-_Best thr 0.05 profit +7.4M_
+_Best thr 0.05 profit_
 
 ![SHAP](docs/shap_summary.png)
 _Top drivers int_rate, dti, grade_
@@ -46,7 +46,7 @@ pip install -r pyproject.toml  # or pip install -e .
 python src/data/make_dataset.py
 python src/data/validate.py
 # 3. train + calibrate + profit
-python -m src.models.train        # Logistic 0.719/0.408 LightGBM 0.722/0.413
+python -m src.models.train        # Logistic Logistic -> LightGBM
 python -m src.models.calibrate    # Brier 0.155 docs/calibration_curve.png
 python -m src.policy.profit       # thr 0.05 docs/profit_curve.csv
 # 4. serve
@@ -56,9 +56,9 @@ docker build -t loan-risk . && docker run -p 8000:8000 loan-risk
 docker-compose up  # api + volumes
 # 5. test
 .\.venv\Scripts\python.exe -m pytest tests/test_api.py -v  # 3 passed
-python scripts/bench.py  # p50 126ms p95 172ms
+python scripts/bench.py  # p50 p95
 Cost / Latency
-Train LightGBM isotonic cv5 500 trees 3 min on 451k 16GB RAM no GPU. API p50 126ms p95 172ms mean 129ms (scripts/bench.py 50 calls) on FastAPI 512MB Docker, no GPU $0/hr local. HF Gradio ZeroGPU free drift HTML. Brier 0.155 profit +7.4M at thr 0.05.
+Train LightGBM isotonic cv5 500 trees 3 min on 451k 16GB RAM no GPU. API p50 p95 mean 129ms (scripts/bench.py 50 calls) on FastAPI 512MB Docker, no GPU $0/hr local. HF Gradio ZeroGPU free drift HTML. Brier 0.155 profit at thr 0.05.
 Limitations
 - No Home Credit multi-table joins, single LendingClub only
 - LGD 0.6 fixed, op_cost $500 heuristic, not per-grade LGD

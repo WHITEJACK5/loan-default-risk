@@ -1,0 +1,5 @@
+p=open('README.md','r',encoding='utf-8').read()
+p=p.replace('## Metrics','## Metrics\n<!-- METRICS:START -->')
+p=p.replace('Fairness','<!-- METRICS:END -->\nFairness')
+open('README.md','w',encoding='utf-8').write(p)
+print('fixed')

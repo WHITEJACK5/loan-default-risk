@@ -8,7 +8,7 @@ Reject inference, no protected attributes
 ## Features
 24 origination ALLOW, no leakage
 ## Metrics
-val ROC 0.722 PR 0.413 Brier 0.155 test 0.703/0.371/0.156 with CIs
+val ROC see metrics.json Brier 0.155 test 0.703/0.371/0.156 with CIs
 ## Calibration
 isotonic cv5 Brier skill
 ## Segment
@@ -19,4 +19,5 @@ censoring, selection bias, no protected
 PSI quantile, retrain quarterly
 ## Version
 v2.0.0
+
 
