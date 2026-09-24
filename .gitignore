@@ -17,3 +17,4 @@ htmlcov/
 .coverage
 .DS_Store
 docs/drift_report.html
+hf-space/
