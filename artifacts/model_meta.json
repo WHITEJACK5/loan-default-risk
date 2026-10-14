@@ -1,0 +1,28 @@
+{
+  "git_sha": "c13d1629973f7eb1353442d44ca1a0291e106800",
+  "data_sha256": "55C16F75120F897683F02E7AABCF080D0E4A20C4832FEB1D592CFA941BD62A2D",
+  "features": [
+    "loan_amnt",
+    "term",
+    "int_rate",
+    "installment",
+    "grade",
+    "sub_grade",
+    "emp_length",
+    "home_ownership",
+    "annual_inc",
+    "verification_status",
+    "purpose",
+    "addr_state",
+    "dti",
+    "delinq_2yrs",
+    "earliest_cr_line",
+    "fico_range_low",
+    "fico_range_high",
+    "inq_last_6mths",
+    "open_acc",
+    "revol_bal",
+    "revol_util",
+    "total_acc"
+  ]
+}

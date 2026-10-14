@@ -1,56 +1,131 @@
-import pandas as pd
-import joblib
+"""Train, calibrate and persist the PD model.
+
+The artifact written here is the one the API loads, so this script is
+responsible for producing a calibrated, lender-side-B pipeline whose input
+columns match ``LoanRequest`` in ``src/api/schemas.py``. A model that is not
+calibrated cannot drive a PD threshold, because LightGBM's raw scores are not
+probabilities.
+"""
+
+from __future__ import annotations
+
 import json
-import subprocess
+import os
 from pathlib import Path
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss, roc_curve
+
+import joblib
+import pandas as pd
+import sklearn
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import (
+    average_precision_score,
+    brier_score_loss,
+    roc_auc_score,
+    roc_curve,
+)
+
+from src.api.model import ARTIFACTS_DIR, MODEL_METAFILE
+from src.loan_default_risk.config import settings
 from src.loan_default_risk.modeling import build_model
-from src.features.build_features import get_preprocessor
+from src.loan_default_risk.provenance import read_data_sha256, resolve_git_sha, sha256_file
 
-def load():
-    train = pd.read_parquet("data/processed/train.parquet")
-    val = pd.read_parquet("data/processed/val.parquet")
-    X_train, y_train = train.drop(columns=["target","loan_status","issue_d","issue_year"]), train["target"]
-    X_val, y_val = val.drop(columns=["target","loan_status","issue_d","issue_year"]), val["target"]
-    return X_train, y_train, X_val, y_val
+SPLITS = ("train", "val", "test")
+METADATA_COLUMNS = ["target", "loan_status", "issue_d", "issue_year"]
+CALIBRATION_FOLDS = 5
 
-def metrics(y, p):
+
+def load_splits() -> dict[str, tuple[pd.DataFrame, pd.Series]]:
+    """Read the temporal splits written by ``src/data/make_dataset.py``."""
+    loaded: dict[str, tuple[pd.DataFrame, pd.Series]] = {}
+    for name in SPLITS:
+        frame = pd.read_parquet(f"data/processed/{name}.parquet")
+        missing = [c for c in METADATA_COLUMNS if c not in frame.columns]
+        if missing:
+            raise ValueError(f"{name}.parquet is missing expected columns: {missing}")
+        features = frame.drop(columns=METADATA_COLUMNS)
+        loaded[name] = (features, frame["target"].astype(int))
+    return loaded
+
+
+def metrics(y, p) -> dict[str, float]:
+    """Ranking, calibration and top-of-curve metrics at a single probability scale."""
     fpr, tpr, _ = roc_curve(y, p)
-    ks = max(tpr - fpr)
-    roc = roc_auc_score(y, p)
-    return {"ROC": roc, "Gini": 2*roc-1, "PR-AUC": average_precision_score(y,p), "Brier": brier_score_loss(y,p), "KS": ks}
+    roc = float(roc_auc_score(y, p))
+    return {
+        "ROC": round(roc, 4),
+        "Gini": round(2 * roc - 1, 4),
+        "PR-AUC": round(float(average_precision_score(y, p)), 4),
+        "Brier": round(float(brier_score_loss(y, p)), 4),
+        "KS": round(float(max(tpr - fpr)), 4),
+        "Recall@5%": round(float(max((t for f, t in zip(fpr, tpr) if f <= 0.05), default=0.0)), 4),
+    }
 
-def main():
-    X_train, y_train, X_val, y_val = load()
-    pre = get_preprocessor()
-    import os
-    Path("mlruns").mkdir(exist_ok=True)
-    os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
+
+def build_calibrated(cv: int = CALIBRATION_FOLDS) -> CalibratedClassifierCV:
+    """Wrap the lender-side-B pipeline in isotonic calibration."""
+    base = build_model(lender_side="B")
+    return CalibratedClassifierCV(estimator=base, method="isotonic", cv=cv)
+
+
+def main() -> None:
+    splits = load_splits()
+    x_train, y_train = splits["train"]
+    x_val, _ = splits["val"]
+
+    if x_train.shape[1] != x_val.shape[1]:
+        raise ValueError(f"feature drift between train and val: {x_train.shape[1]} != {x_val.shape[1]}")
+
+    os.environ.setdefault("MLFLOW_ALLOW_FILE_STORE", "true")
     import mlflow
+
     mlflow.set_tracking_uri(Path("mlruns").resolve().as_uri())
     mlflow.set_experiment("loan-default-risk")
-    with mlflow.start_run(run_name="baseline"):
-        log = Pipeline([("pre", pre), ("clf", LogisticRegression(class_weight="balanced", max_iter=500))])
-        log.fit(X_train, y_train)
-        lgb = build_model(lender_side="A")
-        lgb.fit(X_train, y_train)
-        proba = lgb.predict_proba(X_val)[:,1]
-        m = metrics(y_val, proba)
-        print(f"LGBM " + " ".join([f"{k}={v:.3f}" for k,v in m.items()]))
-        mlflow.log_metrics({k.replace("@","_at_").replace("%","pct"): v for k,v in m.items()})
-        Path("artifacts").mkdir(exist_ok=True)
-        joblib.dump(lgb, "artifacts/model.joblib")
-        meta = {"git_sha": subprocess.check_output(["git","rev-parse","HEAD"]).decode().strip(), "data_sha256": open("data/README.md").read().split("sha256:")[1].split()[0], "features": X_train.columns.tolist()}
-        Path("artifacts/model_meta.json").write_text(json.dumps(meta, indent=2))
-        print("saved artifacts/model.joblib")
+    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    try:
-            import mlflow.sklearn
-            mlflow.sklearn.log_model(lgb, "model")
-    except Exception as e:
-            print(f"mlflow log_model {e}")
+    with mlflow.start_run(run_name="lgbm-isotonic-B") as run:
+        model = build_calibrated()
+        model.fit(x_train, y_train)
 
-if __name__=="__main__":
+        scored_splits: dict[str, dict[str, object]] = {}
+        for name in SPLITS:
+            features, target = splits[name]
+            proba = model.predict_proba(features)[:, 1]
+            scored = metrics(target, proba)
+            scored_splits[name] = {**scored, "n": int(len(target)), "dr": round(float(target.mean()), 4)}
+            mlflow.log_metrics({f"{k}_{name}": float(v) for k, v in scored.items()})
+            print(
+                f"{name} " + " ".join(f"{k}={v:.3f}" for k, v in scored.items())
+                + f" n={len(target)} dr={scored_splits[name]['dr']:.3f}"
+            )
+
+        model_path = ARTIFACTS_DIR / "model.joblib"
+        joblib.dump(model, model_path)
+
+        meta = {
+            "model": "calibrated-lightgbm-B-isotonic",
+            "calibration_folds": CALIBRATION_FOLDS,
+            "features": list(x_train.columns),
+            "threshold": settings.threshold,
+            "lgd": settings.LGD,
+            "op_cost": settings.op_cost,
+            "seed": settings.seed,
+            "git_sha": resolve_git_sha(),
+            "data_sha256": read_data_sha256(),
+            "model_sha256": sha256_file(model_path),
+            "mlflow_run_id": run.info.run_id,
+            "sklearn_version": sklearn.__version__,
+        }
+        MODEL_METAFILE.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        Path("artifacts/metrics.json").write_text(
+            json.dumps(
+                {name: {k: v for k, v in row.items() if k != "n"} for name, row in scored_splits.items()},
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        mlflow.log_params({k: meta[k] for k in ("model", "threshold", "lgd", "git_sha")})
+        print(f"saved {model_path} sha256={meta['model_sha256'][:16]}... git_sha={meta['git_sha']}")
+
+
+if __name__ == "__main__":
     main()
