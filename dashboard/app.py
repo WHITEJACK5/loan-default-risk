@@ -1,7 +1,9 @@
-import streamlit as st
-import pandas as pd
 import json
 from pathlib import Path
+
+import pandas as pd
+import streamlit as st
+
 st.title("loan-default-risk dashboard")
 metrics = json.loads(Path("docs/results/metrics.json").read_text()) if Path("docs/results/metrics.json").exists() else {}
 st.write(metrics)

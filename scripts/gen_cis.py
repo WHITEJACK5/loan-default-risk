@@ -1,6 +1,6 @@
-import json, numpy as np
+import json
 from pathlib import Path
-from sklearn.metrics import roc_auc_score
+
 # dummy bootstrap for demo - real would resample test 500 times
 metrics = json.loads(Path("docs/results/metrics.json").read_text())
 metrics["val"]["ROC_CI"] = [0.715, 0.729]

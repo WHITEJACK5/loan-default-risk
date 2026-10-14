@@ -12,8 +12,9 @@ the optimised production image it is meant to protect.
 
 from __future__ import annotations
 
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 
 from src.loan_default_risk.config import settings
 

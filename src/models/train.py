@@ -34,6 +34,16 @@ METADATA_COLUMNS = ["target", "loan_status", "issue_d", "issue_year"]
 CALIBRATION_FOLDS = 5
 
 
+def mlflow_key(metric: str, split: str) -> str:
+    """Build an MLflow-safe metric key.
+
+    MLflow's file store rejects any key containing ``@`` or ``%``, so
+    ``Recall@5%`` must be transliterated before it is logged.
+    """
+    safe = metric.replace("@", "_at_").replace("%", "pct").replace(" ", "_")
+    return f"{safe}_{split}"
+
+
 def load_splits() -> dict[str, tuple[pd.DataFrame, pd.Series]]:
     """Read the temporal splits written by ``src/data/make_dataset.py``."""
     loaded: dict[str, tuple[pd.DataFrame, pd.Series]] = {}
@@ -57,7 +67,7 @@ def metrics(y, p) -> dict[str, float]:
         "PR-AUC": round(float(average_precision_score(y, p)), 4),
         "Brier": round(float(brier_score_loss(y, p)), 4),
         "KS": round(float(max(tpr - fpr)), 4),
-        "Recall@5%": round(float(max((t for f, t in zip(fpr, tpr) if f <= 0.05), default=0.0)), 4),
+        "Recall@5%": round(float(max((t for f, t in zip(fpr, tpr, strict=False) if f <= 0.05), default=0.0)), 4),
     }
 
 
@@ -91,10 +101,11 @@ def main() -> None:
             features, target = splits[name]
             proba = model.predict_proba(features)[:, 1]
             scored = metrics(target, proba)
-            scored_splits[name] = {**scored, "n": int(len(target)), "dr": round(float(target.mean()), 4)}
-            mlflow.log_metrics({f"{k}_{name}": float(v) for k, v in scored.items()})
+            scored_splits[name] = {**scored, "n": len(target), "dr": round(float(target.mean()), 4)}
+            mlflow.log_metrics({mlflow_key(k, name): float(v) for k, v in scored.items()})
             print(
-                f"{name} " + " ".join(f"{k}={v:.3f}" for k, v in scored.items())
+                f"{name} "
+                + " ".join(f"{k}={v:.3f}" for k, v in scored.items())
                 + f" n={len(target)} dr={scored_splits[name]['dr']:.3f}"
             )
 
@@ -106,7 +117,7 @@ def main() -> None:
             "calibration_folds": CALIBRATION_FOLDS,
             "features": list(x_train.columns),
             "threshold": settings.threshold,
-            "lgd": settings.LGD,
+            "lgd": settings.lgd,
             "op_cost": settings.op_cost,
             "seed": settings.seed,
             "git_sha": resolve_git_sha(),

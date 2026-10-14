@@ -1,5 +1,34 @@
 services:
   api:
     build: .
+    image: ldr:2.0.0
+    container_name: ldr-api
+    restart: unless-stopped
     ports: ["8000:8000"]
-    volumes: ["./data:/app/data", "./mlruns:/app/mlruns"]
+
+    # The model is injected, never baked in, so this compose file can serve a
+    # model that was retrained after the image was built.
+    volumes:
+      - ./artifacts:/app/artifacts:ro
+      - ./mlruns:/app/mlruns
+    environment:
+      LDR_ARTIFACTS_DIR: /app/artifacts
+      LDR_MODEL_PATH: /app/artifacts/model.joblib
+      # Never ship debug logs in a real deployment.
+      LDR_LOG_LEVEL: ${LDR_LOG_LEVEL:-INFO}
+      LDR_CORS_ORIGINS: ${LDR_CORS_ORIGINS:-*}
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"

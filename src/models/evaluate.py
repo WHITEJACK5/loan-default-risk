@@ -1,25 +1,44 @@
+"""Evaluate the fitted model on the held-out temporal splits.
+
+This is the read-only counterpart to ``train.py``: it loads the persisted
+artifact rather than refitting, so evaluation reflects exactly the model the
+API serves.
+"""
+
+from __future__ import annotations
+
 import pandas as pd
-from sklearn.pipeline import Pipeline
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.metrics import roc_auc_score, average_precision_score, brier_score_loss, roc_curve
-from src.loan_default_risk.modeling import build_model
+from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score, roc_curve
 
-def metrics(y, p):
+from src.api.model import load_model
+
+METADATA_COLUMNS = ["target", "loan_status", "issue_d", "issue_year"]
+
+
+def metrics(y, p) -> dict[str, float]:
+    """Ranking, calibration and top-of-curve metrics at a single probability scale."""
     fpr, tpr, _ = roc_curve(y, p)
-    ks = max(tpr - fpr)
-    roc = roc_auc_score(y, p)
-    return {"ROC": roc, "Gini": 2*roc-1, "PR-AUC": average_precision_score(y,p), "Brier": brier_score_loss(y,p), "KS": ks, "Recall@5%": max([t for f,t in zip(fpr,tpr) if f<=0.05], default=0)}
+    roc = float(roc_auc_score(y, p))
+    recall_at_5pct = max((t for f, t in zip(fpr, tpr, strict=False) if f <= 0.05), default=0.0)
+    return {
+        "ROC": round(roc, 4),
+        "Gini": round(2 * roc - 1, 4),
+        "PR-AUC": round(float(average_precision_score(y, p)), 4),
+        "Brier": round(float(brier_score_loss(y, p)), 4),
+        "KS": round(float(max(tpr - fpr)), 4),
+        "Recall_at_5pct": round(float(recall_at_5pct), 4),
+    }
 
-def main():
-    import pandas as pd
-    train=pd.read_parquet("data/processed/train.parquet"); val=pd.read_parquet("data/processed/val.parquet"); test=pd.read_parquet("data/processed/test.parquet")
-    Xt=train.drop(columns=["target","loan_status","issue_d","issue_year"]); yt=train["target"]
-    base=build_model(lender_side="B")
-    cal=CalibratedClassifierCV(estimator=base, method="isotonic", cv=3)
-    cal.fit(Xt, yt)
-    for name, df in [("val", val), ("test", test)]:
-        X=df.drop(columns=["target","loan_status","issue_d","issue_year"]); y=df["target"]; p=cal.predict_proba(X)[:,1]; m=metrics(y,p)
-        print(f"{name} " + " ".join([f"{k}={v:.3f}" for k,v in m.items()]) + f" n={len(df)}")
 
-if __name__=="__main__":
+def main() -> None:
+    model = load_model()
+    for split in ("val", "test"):
+        frame = pd.read_parquet(f"data/processed/{split}.parquet")
+        features = frame.drop(columns=[c for c in METADATA_COLUMNS if c in frame.columns])
+        proba = model.predict_proba(features)[:, 1]
+        scored = metrics(frame["target"], proba)
+        print(f"{split} " + " ".join(f"{k}={v:.3f}" for k, v in scored.items()) + f" n={len(frame)}")
+
+
+if __name__ == "__main__":
     main()

@@ -1,43 +1,76 @@
-import pandas as pd
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.pipeline import Pipeline
-from sklearn.metrics import brier_score_loss, roc_auc_score, average_precision_score
-from sklearn.calibration import calibration_curve
-import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
+"""Calibration: turn LightGBM's raw scores into usable probabilities.
+
+LightGBM's output is a rank-ordered score, not a probability, so a threshold
+on it is meaningless. Isotonic calibration maps the score onto the observed
+default rate, which is what ``settings.threshold`` and the profit sweep need.
+
+Brier and ROC are both reported: ROC is unchanged by a monotone calibration,
+so a ROC change would mean the calibration step altered the ranking and is
+therefore a bug.
+"""
+
+from __future__ import annotations
+
 from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+
+import matplotlib.pyplot as plt
+from sklearn.calibration import CalibratedClassifierCV, calibration_curve
+from sklearn.metrics import (
+    average_precision_score,
+    brier_score_loss,
+    roc_auc_score,
+)
+
 from src.loan_default_risk.modeling import build_model
+from src.models.train import load_splits
 
-def load():
-    train = pd.read_parquet("data/processed/train.parquet")
-    val = pd.read_parquet("data/processed/val.parquet")
-    X_train = train.drop(columns=["target","loan_status","issue_d","issue_year"])
-    y_train = train["target"]
-    X_val = val.drop(columns=["target","loan_status","issue_d","issue_year"])
-    y_val = val["target"]
-    return X_train, y_train, X_val, y_val
+CALIBRATION_FOLDS = 5
+BINS = 10
 
-def eval_prob(y, p, name):
-    print(f"{name} Brier={brier_score_loss(y,p):.4f} ROC={roc_auc_score(y,p):.3f} PR={average_precision_score(y,p):.3f}")
 
-def main():
-    X_train, y_train, X_val, y_val = load()
+def report(y, p, label: str) -> None:
+    """Print the calibration-stable metrics for one probability vector."""
+    print(
+        f"{label:>8} Brier={brier_score_loss(y, p):.4f} "
+        f"ROC={roc_auc_score(y, p):.3f} PR={average_precision_score(y, p):.3f}"
+    )
+
+
+def main() -> None:
+    splits = load_splits()
+    x_train, y_train = splits["train"]
+    x_val, y_val = splits["val"]
+
     base = build_model(lender_side="B")
-    base.fit(X_train, y_train)
-    p_raw = base.predict_proba(X_val)[:,1]
-    eval_prob(y_val, p_raw, "Raw")
-    cal = CalibratedClassifierCV(estimator=base, method="isotonic", cv=5)
-    cal.fit(X_train, y_train)
-    p_cal = cal.predict_proba(X_val)[:,1]
-    eval_prob(y_val, p_cal, "Isotonic")
-    Path("docs").mkdir(exist_ok=True)
-    fig, ax = plt.subplots()
-    for p, label in [(p_raw,"Raw"), (p_cal,"Isotonic")]:
-        prob_true, prob_pred = calibration_curve(y_val, p, n_bins=10)
+    base.fit(x_train, y_train)
+    raw_p = base.predict_proba(x_val)[:, 1]
+    report(y_val, raw_p, "Raw")
+
+    calibrated = CalibratedClassifierCV(estimator=base, method="isotonic", cv=CALIBRATION_FOLDS)
+    calibrated.fit(x_train, y_train)
+    calibrated_p = calibrated.predict_proba(x_val)[:, 1]
+    report(y_val, calibrated_p, "Isotonic")
+
+    if roc_auc_score(y_val, raw_p) != roc_auc_score(y_val, calibrated_p):
+        print("WARNING isotonic calibration changed the ranking; check the fit")
+
+    figure, ax = plt.subplots()
+    for probabilities, label in [(raw_p, "Raw"), (calibrated_p, "Isotonic")]:
+        prob_true, prob_pred = calibration_curve(y_val, probabilities, n_bins=BINS)
         ax.plot(prob_pred, prob_true, marker="o", label=label)
-    ax.plot([0,1],[0,1],"k--")
-    ax.set_xlabel("Mean predicted PD"); ax.set_ylabel("Fraction positives"); ax.legend()
-    plt.savefig("docs/calibration_curve.png", dpi=150)
+    ax.plot([0, 1], [0, 1], "k--")
+    ax.set_xlabel("Mean predicted PD")
+    ax.set_ylabel("Fraction positives")
+    ax.legend()
+
+    Path("docs").mkdir(parents=True, exist_ok=True)
+    figure.savefig("docs/calibration_curve.png", dpi=150, bbox_inches="tight")
     print("saved docs/calibration_curve.png")
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

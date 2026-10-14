@@ -1,6 +1,6 @@
 {
-  "git_sha": "c13d1629973f7eb1353442d44ca1a0291e106800",
-  "data_sha256": "55C16F75120F897683F02E7AABCF080D0E4A20C4832FEB1D592CFA941BD62A2D",
+  "model": "calibrated-lightgbm-B-isotonic",
+  "calibration_folds": 5,
   "features": [
     "loan_amnt",
     "term",
@@ -24,5 +24,14 @@
     "revol_bal",
     "revol_util",
     "total_acc"
-  ]
+  ],
+  "threshold": 0.05,
+  "lgd": 0.6,
+  "op_cost": 500.0,
+  "seed": 42,
+  "git_sha": "f30add73b9df7e6b958742f986d2f50779c13cf1",
+  "data_sha256": "55c16f75120f897683f02e7aabcf080d0e4a20c4832feb1d592cfa941bd62a2d",
+  "model_sha256": "d4c99e8c27aa6decd9c093d815ba4eae15d8f3607574460f1dbd79fa773c6750",
+  "mlflow_run_id": "2b0878c357684966827b4cb6c265ac84",
+  "sklearn_version": "1.9.1"
 }

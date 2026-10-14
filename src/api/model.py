@@ -47,17 +47,13 @@ def _sha256(path: Path) -> str:
 
 
 def _resolve_model_path(path: str | Path) -> Path:
-    """Constrain the model path to the artifacts directory or an env override."""
+    """Constrain the model path to the artifacts directory."""
     candidate = Path(path).expanduser()
-    if not candidate.is_absolute():
-        candidate = (ARTIFACTS_DIR / candidate).resolve()
-    else:
-        candidate = candidate.resolve()
+    candidate = candidate if candidate.is_absolute() else ARTIFACTS_DIR / candidate
+    candidate = candidate.resolve()
 
     if not str(candidate).startswith(str(ARTIFACTS_DIR.resolve())):
-        raise ModelIntegrityError(
-            f"model path {candidate} escapes the artifacts directory {ARTIFACTS_DIR.resolve()}"
-        )
+        raise ModelIntegrityError(f"model path {candidate} escapes the artifacts directory {ARTIFACTS_DIR.resolve()}")
     return candidate
 
 

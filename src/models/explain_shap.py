@@ -1,46 +1,73 @@
+"""Generate the global SHAP summary plot for the fitted model.
+
+Feature names are derived from the fitted preprocessor rather than written by
+hand. Listing the categories of a feature the pipeline dropped (as an earlier
+version did, naming ``grade`` for a lender-side-B model that excludes it)
+silently mislabels every bar on the summary plot.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import pandas as pd
 import shap
-import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
-from pathlib import Path
-from sklearn.pipeline import Pipeline
 from sklearn.calibration import CalibratedClassifierCV
-from src.loan_default_risk.modeling import build_model
-import numpy as np
 
-def load():
+from src.loan_default_risk.modeling import build_model
+
+SAMPLE_SIZE = 2000
+PLOT_ROWS = 200
+
+
+def load() -> tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
     train = pd.read_parquet("data/processed/train.parquet")
     val = pd.read_parquet("data/processed/val.parquet")
-    Xt = train.drop(columns=["target","loan_status","issue_d","issue_year"])
-    yt = train["target"]
-    Xv = val.drop(columns=["target","loan_status","issue_d","issue_year"])
-    return Xt, yt, Xv, val
+    drop = ["target", "loan_status", "issue_d", "issue_year"]
+    return train.drop(columns=drop), train["target"], val.drop(columns=drop)
 
-def main():
-    Xt, yt, Xv, val_df = load()
-    base = build_model(lender_side="B")
-    cal = CalibratedClassifierCV(estimator=base, method="isotonic", cv=5)
-    cal.fit(Xt, yt)
-    base.fit(Xt, yt)
-    from src.features.build_features import get_preprocessor
-    pre = get_preprocessor()
-    # random stratified 2k from test window (here val as proxy) per Work Plan
-    X_sample = Xv.sample(n=2000, random_state=42) if len(Xv) >= 2000 else Xv
-    X_trans = pre.fit_transform(Xt)  # fit on train as before for demo
-    # for SHAP, use sample
-    X_sample_trans = pre.transform(X_sample)
-    cat_cols = pre.named_transformers_["cat"].named_steps["oh"].get_feature_names_out(["term","grade","sub_grade","emp_length","home_ownership","verification_status","purpose","addr_state"])
-    feat_names = ["loan_amnt","int_rate","installment","annual_inc","dti","fico_range_low","fico_range_high","revol_bal","revol_util","open_acc","total_acc","delinq_2yrs"] + list(cat_cols)
-    model = base.named_steps["clf"]
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_sample_trans[:200])
-    if isinstance(shap_values, list):
-        shap_values = shap_values[1] if len(shap_values)==2 else shap_values[0]
-    Path("docs").mkdir(exist_ok=True)
+
+def fit_calibrated(x_train, y_train) -> CalibratedClassifierCV:
+    model = CalibratedClassifierCV(estimator=build_model(lender_side="B"), method="isotonic", cv=5)
+    model.fit(x_train, y_train)
+    return model
+
+
+def main() -> None:
+    x_train, y_train, x_val = load()
+    model = fit_calibrated(x_train, y_train)
+    preprocessor = model.calibrated_classifiers_[0].estimator.named_steps["pre"]
+    classifier = model.calibrated_classifiers_[0].estimator.named_steps["clf"]
+
+    sample = x_val.sample(n=SAMPLE_SIZE, random_state=42) if len(x_val) >= SAMPLE_SIZE else x_val
+    transformed = preprocessor.transform(sample)
+
+    # Names must come from the fitted encoder, not from a hand-written list.
+    feature_names = list(preprocessor.get_feature_names_out())
+
+    explainer = shap.TreeExplainer(classifier)
+    shap_values = explainer.shap_values(transformed[:PLOT_ROWS])
+    if isinstance(shap_values, list):  # per-class list; binary -> index 1
+        shap_values = shap_values[1] if len(shap_values) > 1 else shap_values[0]
+    shap_values = shap_values[0] if isinstance(shap_values, list) else shap_values
+
+    if shap_values.shape[1] != len(feature_names):
+        raise ValueError(
+            f"{shap_values.shape[1]} SHAP columns but {len(feature_names)} feature names; "
+            "the preprocessor and the model have diverged"
+        )
+
     plt.figure()
-    shap.summary_plot(shap_values, X_sample_trans[:200], feature_names=feat_names, show=False)
+    shap.summary_plot(shap_values, transformed[:PLOT_ROWS], feature_names=feature_names, show=False)
     plt.tight_layout()
-    plt.savefig("docs/shap_summary.png", dpi=150)
-    print("saved docs/shap_summary.png with random 2k sample")
+    Path("docs").mkdir(parents=True, exist_ok=True)
+    plt.savefig("docs/shap_summary.png", dpi=150, bbox_inches="tight")
+    print(f"saved docs/shap_summary.png with {PLOT_ROWS} of {len(sample)} sampled rows")
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()

@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import gradio as gr
 import joblib
-from pathlib import Path
 import pandas as pd
+
 MODEL = Path("artifacts/model.joblib")
 def predict(loan_amnt, int_rate, annual_inc, dti, fico_low, revol_util):
     import numpy as np
