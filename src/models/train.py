@@ -24,7 +24,6 @@ from sklearn.metrics import (
     roc_curve,
 )
 
-from src.api.model import ARTIFACTS_DIR, MODEL_METAFILE
 from src.loan_default_risk.config import settings
 from src.loan_default_risk.modeling import build_model
 from src.loan_default_risk.provenance import read_data_sha256, resolve_git_sha, sha256_file
@@ -90,7 +89,8 @@ def main() -> None:
 
     mlflow.set_tracking_uri(Path("mlruns").resolve().as_uri())
     mlflow.set_experiment("loan-default-risk")
-    ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
+    artifacts = settings.artifacts_dir
+    artifacts.mkdir(parents=True, exist_ok=True)
 
     with mlflow.start_run(run_name="lgbm-isotonic-B") as run:
         model = build_calibrated()
@@ -109,7 +109,7 @@ def main() -> None:
                 + f" n={len(target)} dr={scored_splits[name]['dr']:.3f}"
             )
 
-        model_path = ARTIFACTS_DIR / "model.joblib"
+        model_path = artifacts / "model.joblib"
         joblib.dump(model, model_path)
 
         meta = {
@@ -126,8 +126,9 @@ def main() -> None:
             "mlflow_run_id": run.info.run_id,
             "sklearn_version": sklearn.__version__,
         }
+        MODEL_METAFILE = settings.model_meta
         MODEL_METAFILE.write_text(json.dumps(meta, indent=2), encoding="utf-8")
-        Path("artifacts/metrics.json").write_text(
+        settings.metrics.write_text(
             json.dumps(
                 {name: {k: v for k, v in row.items() if k != "n"} for name, row in scored_splits.items()},
                 indent=2,

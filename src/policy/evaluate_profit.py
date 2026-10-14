@@ -52,7 +52,7 @@ def sweep(proba, y, cash_frame, thresholds=None) -> pd.DataFrame:
 
     Args:
         proba: Predicted default probability for each loan.
-        y: True default label, used for the reported default rate.
+        y: True default label, reported for the approved set.
         cash_frame: Output of :func:`cash_table`, aligned row-for-row.
         thresholds: Approval cut-offs to evaluate. Defaults to the fine grid.
 
@@ -61,29 +61,38 @@ def sweep(proba, y, cash_frame, thresholds=None) -> pd.DataFrame:
         approved loans, total profit, and profit per loan.
     """
     thresholds = FINE_GRID if thresholds is None else np.asarray(thresholds)
-    approval = pd.Series(np.asarray(proba) < thresholds[:, None])
-    profits = cash_frame["realized_profit"].to_numpy()[None, :]
+    scores = np.asarray(proba, dtype=float)
+    profits = cash_frame["realized_profit"].to_numpy(dtype=float)
     labels = np.asarray(y)
 
+    if not (len(scores) == len(profits) == len(labels)):
+        raise ValueError(f"proba ({len(scores)}), cash ({len(profits)}) and labels ({len(labels)}) must align")
+
     rows = []
-    for index, threshold in enumerate(thresholds):
-        approved = approval.iloc[index].to_numpy()
+    for threshold in thresholds:
+        approved = scores < float(threshold)
         if not approved.any():
             continue
-        total = float(profits[0][approved].sum())
+        total = float(profits[approved].sum())
+        count = int(approved.sum())
         rows.append(
             (
-                threshold,
+                float(threshold),
                 float(approved.mean()),
                 float(labels[approved].mean()),
                 total,
-                total / float(approved.sum()),
+                total / count,
             )
         )
 
     result = pd.DataFrame(rows, columns=["thr", "approve_rate", "default_rate", "total_profit", "profit_per_loan"])
     if result.empty:
         return result
+
+    best = result["total_profit"].idxmax()
+    if int(best) in (0, len(result) - 1):
+        print("WARNING interior optimum on boundary, widen grid")
+    return result
 
     best = result["total_profit"].idxmax()
     if int(best) in (0, len(result) - 1):

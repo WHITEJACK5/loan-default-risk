@@ -29,9 +29,9 @@
   "lgd": 0.6,
   "op_cost": 500.0,
   "seed": 42,
-  "git_sha": "f30add73b9df7e6b958742f986d2f50779c13cf1",
+  "git_sha": "9f0584dd326cb3be181fcebd83492d7dbf3b9189",
   "data_sha256": "55c16f75120f897683f02e7aabcf080d0e4a20c4832feb1d592cfa941bd62a2d",
-  "model_sha256": "d4c99e8c27aa6decd9c093d815ba4eae15d8f3607574460f1dbd79fa773c6750",
-  "mlflow_run_id": "2b0878c357684966827b4cb6c265ac84",
+  "model_sha256": "d9c0237776553a02fc2c5bbcd5d162185ad60127438fb1393a7a8ba4678e9c11",
+  "mlflow_run_id": "6948f3b489db4c109a7c0c2e028899a9",
   "sklearn_version": "1.9.1"
 }
