@@ -1,0 +1,57 @@
+# Keep the Docker build context minimal and free of local secrets.
+# Anything listed here is not sent to the daemon and cannot be COPYed in.
+
+# Version control and history
+.git
+.gitignore
+.gitattributes
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+token.json
+credentials.json
+
+# Virtualenvs and caches - rebuilt inside the image from pyproject.toml
+.venv
+venv
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov
+.coverage
+
+# Raw and processed data: too large for an image and never needed at runtime
+data/
+raw.csv.gz
+*.parquet
+*.csv
+
+# Model artifacts: injected at deploy time, never baked into the image
+artifacts/
+mlruns/
+mlartifacts/
+
+# Docs, notebooks, editor state and deploy workspaces
+docs/
+notebooks/
+.vscode/
+.idea/
+*.md
+!README.md
+hf-space/
+.hf_space/
+
+# Local tooling and CI config not needed at runtime
+.github/
+.pre-commit-config.yaml
+Dockerfile
+docker-compose.yml
+.dockerignore
