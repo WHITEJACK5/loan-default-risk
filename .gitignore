@@ -1,20 +1,59 @@
-.venv/
+# --- Python build artifacts ---
 __pycache__/
-*.pyc
-*.parquet
-data/raw/*
-!.gitkeep
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# --- Secrets / credentials (never commit) ---
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.*
+token.json
+credentials.json
+
+# --- Raw and processed data (regenerate with src/data/make_dataset.py) ---
+data/raw/*
+!data/raw/.gitkeep
+*.parquet
+!tests/fixtures/synthetic.parquet
+*.csv
+!data/raw/.gitkeep
+
+# --- Model artifacts ---
+# Model binaries are served from the MLflow model registry, never from git.
+artifacts/*
+!artifacts/*.json
+!artifacts/.gitkeep
+
+# --- Experiment tracking stores (local only) ---
 mlruns/
-.ipynb_checkpoints/
-artifacts/
-*.joblib
+mlartifacts/
 mlflow.db
+
+# --- Caches / coverage ---
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-htmlcov/
 .coverage
+htmlcov/
+.ipynb_checkpoints/
+.hypothesis/
+
+# --- Editors and OS ---
+.vscode/
+.idea/
+*.swp
 .DS_Store
-docs/drift_report.html
+Thumbs.db
+
+# --- Deployment / integration workspaces ---
 hf-space/
+.hf_space/
