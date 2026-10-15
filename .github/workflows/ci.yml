@@ -1,6 +1,8 @@
 name: CI
 on: [push, pull_request]
-concurrency: {group: ci-${{ github.ref }}, cancel-in-progress: true}
+concurrency:
+  group: "ci-${{ github.ref }}"
+  cancel-in-progress: true
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -59,6 +61,23 @@ jobs:
         with: {python-version: "3.11", cache: pip}
       - run: pip install -e ".[dev]"
       - run: pytest --cov=src --cov-report=term --cov-fail-under=5
+      # Upload the measured evidence so a claim in the docs can be traced to the
+      # run that produced it. Without this, "p50 29 ms" and "val ROC 0.703" are
+      # only as good as the last time somebody remembered to paste them.
+      - name: persist measured artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: measured-evidence
+          path: |
+            docs/latency.json
+            docs/drivers.md
+            docs/calibration_tradeoff.json
+            docs/segment.json
+            docs/drift_report.md
+            artifacts/metrics.json
+            artifacts/model_meta.json
+          if-no-files-found: error
+          retention-days: 90
   docker:
     runs-on: ubuntu-latest
     steps:
