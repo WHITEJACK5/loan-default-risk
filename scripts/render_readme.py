@@ -17,24 +17,43 @@ README_FILE = Path("README.md")
 START = "<!-- METRICS:START -->"
 END = "<!-- METRICS:END -->"
 
-# Columns rendered per split, in display order. "dr" is the default rate.
-COLUMNS = ["n", "dr", "ROC", "Gini", "PR-AUC", "Brier", "KS", "Recall_at_5pct"]
-HEADER = ["split", *COLUMNS]
+# Display header -> key in artifacts/metrics.json, in render order. The two
+# differ ("Recall_at_5pct" vs "Recall@5%") because the artifact key is the
+# metric's own name. Keeping them as an explicit map is what stops a rename on
+# either side from silently rendering "n/a" where a real number exists.
+COLUMNS: list[tuple[str, str]] = [
+    ("n", "n"),
+    ("dr", "dr"),
+    ("ROC", "ROC"),
+    ("Gini", "Gini"),
+    ("PR-AUC", "PR-AUC"),
+    ("Brier", "Brier"),
+    ("KS", "KS"),
+    ("Recall_at_5pct", "Recall@5%"),
+]
 
 
 def render_block(metrics: dict) -> str:
-    """Build the markdown table between the START and END markers."""
-    header = "| " + " | ".join(HEADER) + " |"
-    divider = "|" + "---|" * len(HEADER)
+    """Build the markdown table between the START and END markers.
+
+    A metric absent from the artifact raises instead of rendering a
+    placeholder: an "n/a" that nobody notices is how the metric and the README
+    drifted apart in the first place.
+    """
+    header = "| " + " | ".join(["split", *(name for name, _ in COLUMNS)]) + " |"
+    divider = "|" + "---|" * (len(COLUMNS) + 1)
     rows = [header, divider]
     for split in ("train", "val", "test"):
         values = metrics.get(split)
         if values is None:
             continue
         cells = [split]
-        for key in COLUMNS:
-            value = values.get(key)
-            cells.append("n/a" if value is None else _format(key, value))
+        for name, key in COLUMNS:
+            if key not in values:
+                raise SystemExit(
+                    f"metrics.json split {split!r} is missing {key!r} (rendered as {name!r})"
+                )
+            cells.append(_format(key, values[key]))
         rows.append("| " + " | ".join(cells) + " |")
     return "\n".join(rows)
 
