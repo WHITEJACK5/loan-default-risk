@@ -10,7 +10,7 @@
 Batch tabular risk system that predicts probability of default (PD) for LendingClub loans and converts it into a profit-based approve/reject policy, with adverse-action explanations and deterministic A/B assignment.
 
 **Live Demo:** [whitejack5-loan-default-risk.hf.space](https://whitejack5-loan-default-risk.hf.space)
-**Repo:** [github.com/WHITEJACK5/loan-default-risk](https://github.com/WHITEJACK5/loan-default-risk) -- **Version:** `2.0.0`
+**Repo:** [github.com/WHITEJACK5/loan-default-risk](https://github.com/WHITEJACK5/loan-default-risk) -- **Version:** `2.1.0`
 
 ## 🎯 Problem & Scale
 
