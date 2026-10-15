@@ -129,10 +129,7 @@ def main() -> None:
         MODEL_METAFILE = settings.model_meta
         MODEL_METAFILE.write_text(json.dumps(meta, indent=2), encoding="utf-8")
         settings.metrics.write_text(
-            json.dumps(
-                {name: {k: v for k, v in row.items() if k != "n"} for name, row in scored_splits.items()},
-                indent=2,
-            ),
+            json.dumps({name: dict(row) for name, row in scored_splits.items()}, indent=2),
             encoding="utf-8",
         )
         mlflow.log_params({k: meta[k] for k in ("model", "threshold", "lgd", "git_sha")})
