@@ -1,6 +1,7 @@
 {
   "model": "calibrated-lightgbm-B-isotonic",
   "calibration_folds": 5,
+  "calibration_ensemble": false,
   "features": [
     "loan_amnt",
     "term",
@@ -29,9 +30,9 @@
   "lgd": 0.6,
   "op_cost": 500.0,
   "seed": 42,
-  "git_sha": "9b6ad53f988f136ee22fcb9bfa318d942334acbe",
+  "git_sha": "165f4eb75a84e49ddf5ae87c3a10c272cbdba7fb",
   "data_sha256": "55c16f75120f897683f02e7aabcf080d0e4a20c4832feb1d592cfa941bd62a2d",
-  "model_sha256": "498884dfadb4b0fa9f2cb273c2304f692bafdc11d8fb8a9c5836784617129071",
-  "mlflow_run_id": "7bebddf75e444f3fb28e3be934cdad2a",
+  "model_sha256": "79d1075f4adf5670a6be7385d4c9f6039bbf4ae2a9100fdcb759fe3962d830c9",
+  "mlflow_run_id": "2afff7be2efd4fd298ad7f4bd0e46821",
   "sklearn_version": "1.9.1"
 }
