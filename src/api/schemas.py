@@ -1,13 +1,18 @@
 """Request and response contracts.
 
-``LoanRequest`` is deliberately strict: unknown keys are rejected and every
-field is bounded. The estimator only sees imputed, one-hot vectors, so tight
-input bounds are the only thing standing between a caller and an arbitrary
-value travelling into a tree split.
+Two rules shape this module:
 
-A ``LoanRequest`` is also usable without FastAPI — ``to_frame()`` converts it
-into the single-row ``DataFrame`` the pipeline expects, so the API, the batch
-policy sweep and the dashboard share one code path.
+1. **The schema must be at least as wide as the model's training distribution.**
+   An earlier version allowed 4 loan purposes while the pipeline is trained on
+   14, so 10 of them returned 422 and could not be scored. A schema narrower
+   than the model is a functional bug that presents as bad input.
+2. **Bounds must match the bounds the training data was clipped to.** Values the
+   API rejects are clipped away in ``src/data/make_dataset.py``; a request
+   outside them cannot be scored by a model that never saw such a value.
+
+A ``LoanRequest`` is usable without FastAPI: ``to_frame()`` builds the
+single-row ``DataFrame`` the pipeline expects, so the API, the batch policy
+sweep and the dashboard share one construction path.
 """
 
 from __future__ import annotations
@@ -17,7 +22,12 @@ import math
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-# Accepted employment tenures, mirroring LendingClub's encoding.
+# Category sets as they appear in the training corpus. These are the values the
+# one-hot encoder was fitted on, not a curated subset. Keeping them in sync with
+# src/data/make_dataset.ALLOW is what stops the silent all-zero-vector bug that
+# OneHotEncoder(handle_unknown="ignore") produces for an unpadded category.
+TERMS = ["36 months", "60 months"]
+GRADES = list("ABCDEFG")
 EMP_LENGTHS = [
     "< 1 year",
     "1 year",
@@ -31,22 +41,53 @@ EMP_LENGTHS = [
     "9 years",
     "10+ years",
 ]
-HOME_OWNERSHIP = ["RENT", "MORTGAGE", "OWN", "OTHER"]
+HOME_OWNERSHIP = ["RENT", "MORTGAGE", "OWN", "ANY", "NONE", "OTHER"]
 VERIFICATION = ["Verified", "Source Verified", "Not Verified"]
-PURPOSES = ["debt_consolidation", "credit_card", "home_improvement", "other"]
-TERMS = ["36 months", "60 months"]
+PURPOSES = [
+    "car",
+    "credit_card",
+    "debt_consolidation",
+    "educational",
+    "home_improvement",
+    "house",
+    "major_purchase",
+    "medical",
+    "moving",
+    "other",
+    "renewable_energy",
+    "small_business",
+    "vacation",
+    "wedding",
+]
 
-# Numeric ranges are data-derived minima/maxima of the published corpus.
-LOAN_AMNT = (500.0, 40000.0)
-INT_RATE = (5.0, 35.0)
-INSTALLMENT = (50.0, 2000.0)
-ANNUAL_INC = (10000.0, 500000.0)
-DTI = (0.0, 50.0)
-FICO = (300, 850)
-OPEN_ACC = (1, 50)
-TOTAL_ACC = (1, 100)
-REVOL_BAL = (0.0, 100000.0)
-REVOL_UTIL = (0.0, 100.0)
+# Bounds mirror FIELD_BOUNDS in src/data/make_dataset.py, which clip the
+# training corpus. Train and serve must agree or the model is asked to score
+# values it never saw.
+FIELD_BOUNDS: dict[str, tuple[float, float]] = {
+    "loan_amnt": (500.0, 40000.0),
+    "int_rate": (5.0, 35.0),
+    "installment": (50.0, 2000.0),
+    "annual_inc": (10000.0, 500000.0),
+    "dti": (0.0, 50.0),
+    "revol_bal": (0.0, 100000.0),
+    "revol_util": (0.0, 100.0),
+}
+INTEGER_BOUNDS: dict[str, tuple[int, int]] = {
+    "fico_range_low": (300, 850),
+    "fico_range_high": (300, 850),
+    "delinq_2yrs": (0, 10),
+    "inq_last_6mths": (0, 10),
+    "open_acc": (1, 50),
+    "total_acc": (1, 100),
+}
+CHOICE_FIELDS = {
+    "term": TERMS,
+    "grade": GRADES,
+    "emp_length": EMP_LENGTHS,
+    "home_ownership": HOME_OWNERSHIP,
+    "verification_status": VERIFICATION,
+    "purpose": PURPOSES,
+}
 
 
 class LoanRequest(BaseModel):
@@ -54,52 +95,51 @@ class LoanRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
-    loan_amnt: float = Field(ge=LOAN_AMNT[0], le=LOAN_AMNT[1])
-    term: str = Field(pattern="^(36|60) months$")
-    int_rate: float = Field(ge=INT_RATE[0], le=INT_RATE[1])
-    installment: float = Field(ge=INSTALLMENT[0], le=INSTALLMENT[1])
-    grade: str = Field(pattern="^[A-G]$")
+    loan_amnt: float = Field(ge=FIELD_BOUNDS["loan_amnt"][0], le=FIELD_BOUNDS["loan_amnt"][1])
+    term: str
+    int_rate: float = Field(ge=FIELD_BOUNDS["int_rate"][0], le=FIELD_BOUNDS["int_rate"][1])
+    installment: float = Field(ge=FIELD_BOUNDS["installment"][0], le=FIELD_BOUNDS["installment"][1])
+    grade: str
     sub_grade: str = Field(pattern="^[A-G][1-5]$")
     emp_length: str
     home_ownership: str
-    annual_inc: float = Field(ge=ANNUAL_INC[0], le=ANNUAL_INC[1])
+    annual_inc: float = Field(ge=FIELD_BOUNDS["annual_inc"][0], le=FIELD_BOUNDS["annual_inc"][1])
     verification_status: str
     purpose: str
-    addr_state: str = Field(pattern="^[A-Z]{2}$")
-    dti: float = Field(ge=DTI[0], le=DTI[1])
-    delinq_2yrs: int = Field(ge=0, le=10)
-    fico_range_low: int = Field(ge=FICO[0], le=FICO[1])
-    fico_range_high: int = Field(ge=FICO[0], le=FICO[1])
-    inq_last_6mths: int = Field(ge=0, le=10)
-    open_acc: int = Field(ge=OPEN_ACC[0], le=OPEN_ACC[1])
-    revol_bal: float = Field(ge=REVOL_BAL[0], le=REVOL_BAL[1])
-    revol_util: float = Field(ge=REVOL_UTIL[0], le=REVOL_UTIL[1])
-    total_acc: int = Field(ge=TOTAL_ACC[0], le=TOTAL_ACC[1])
+    addr_state: str = Field(pattern="^[A-Za-z]{2}$", description="US state abbreviation")
+    dti: float = Field(ge=FIELD_BOUNDS["dti"][0], le=FIELD_BOUNDS["dti"][1])
+    delinq_2yrs: int
+    fico_range_low: int
+    fico_range_high: int
+    inq_last_6mths: int
+    open_acc: int
+    revol_bal: float = Field(ge=FIELD_BOUNDS["revol_bal"][0], le=FIELD_BOUNDS["revol_bal"][1])
+    revol_util: float = Field(ge=FIELD_BOUNDS["revol_util"][0], le=FIELD_BOUNDS["revol_util"][1])
+    total_acc: int
 
-    @field_validator("term")
+    @field_validator(*CHOICE_FIELDS)
     @classmethod
-    def _term_matches_grade(cls, value: str) -> str:
-        return value if value in TERMS else _reject(f"term must be one of {TERMS}")
+    def _in_category(cls, value: str, info) -> str:
+        allowed = CHOICE_FIELDS.get(info.field_name)
+        if allowed is None:
+            return value
+        if value not in allowed:
+            raise ValueError(f"{info.field_name} must be one of {allowed}")
+        return value
 
-    @field_validator("emp_length")
+    @field_validator("addr_state")
     @classmethod
-    def _emp_length(cls, value: str) -> str:
-        return value if value in EMP_LENGTHS else _reject(f"emp_length must be one of {EMP_LENGTHS}")
+    def _upper_state(cls, value: str) -> str:
+        """States are upper-case in the training corpus; accept either casing."""
+        return value.upper()
 
-    @field_validator("home_ownership")
+    @field_validator("sub_grade")
     @classmethod
-    def _home(cls, value: str) -> str:
-        return value if value in HOME_OWNERSHIP else _reject(f"home_ownership must be one of {HOME_OWNERSHIP}")
-
-    @field_validator("verification_status")
-    @classmethod
-    def _verification(cls, value: str) -> str:
-        return value if value in VERIFICATION else _reject(f"verification_status must be one of {VERIFICATION}")
-
-    @field_validator("purpose")
-    @classmethod
-    def _purpose(cls, value: str) -> str:
-        return value if value in PURPOSES else _reject(f"purpose must be one of {PURPOSES}")
+    def _sub_grade_matches_grade(cls, value: str, info) -> str:
+        grade = info.data.get("grade")
+        if grade is not None and value and not value.startswith(grade):
+            raise ValueError(f"sub_grade {value} must belong to grade {grade}")
+        return value.upper()
 
     @field_validator("fico_range_high")
     @classmethod
@@ -109,21 +149,20 @@ class LoanRequest(BaseModel):
             raise ValueError("fico_range_high must be >= fico_range_low")
         return value
 
-    @field_validator(
-        "loan_amnt",
-        "int_rate",
-        "installment",
-        "annual_inc",
-        "dti",
-        "revol_bal",
-        "revol_util",
-        "fico_range_low",
-        "fico_range_high",
-    )
+    @field_validator(*FIELD_BOUNDS)
     @classmethod
     def _finite(cls, value: float) -> float:
+        """NaN and infinity pass ge/le only because they compare False."""
         if not math.isfinite(value):
             raise ValueError("value must be finite (NaN and infinity are rejected)")
+        return value
+
+    @field_validator(*INTEGER_BOUNDS)
+    @classmethod
+    def _bounded_int(cls, value: int, info) -> int:
+        low, high = INTEGER_BOUNDS[info.field_name]
+        if not low <= value <= high:
+            raise ValueError(f"{info.field_name} must be between {low} and {high}, got {value}")
         return value
 
     def to_frame(self) -> pd.DataFrame:
@@ -131,8 +170,8 @@ class LoanRequest(BaseModel):
         return pd.DataFrame([self.model_dump()])
 
 
-def _reject(message: str):
-    raise ValueError(message)
+def _make_response_base() -> type[BaseModel]:
+    return BaseModel
 
 
 class PredictResponse(BaseModel):
