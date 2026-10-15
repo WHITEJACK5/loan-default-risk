@@ -20,7 +20,7 @@ from __future__ import annotations
 import math
 
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 # Category sets as they appear in the training corpus. These are the values the
 # one-hot encoder was fitted on, not a curated subset. Keeping them in sync with
@@ -119,8 +119,8 @@ class LoanRequest(BaseModel):
 
     @field_validator(*CHOICE_FIELDS)
     @classmethod
-    def _in_category(cls, value: str, info) -> str:
-        allowed = CHOICE_FIELDS.get(info.field_name)
+    def _in_category(cls, value: str, info: ValidationInfo) -> str:
+        allowed = CHOICE_FIELDS.get(info.field_name) if info.field_name else None
         if allowed is None:
             return value
         if value not in allowed:
@@ -135,7 +135,7 @@ class LoanRequest(BaseModel):
 
     @field_validator("sub_grade")
     @classmethod
-    def _sub_grade_matches_grade(cls, value: str, info) -> str:
+    def _sub_grade_matches_grade(cls, value: str, info: ValidationInfo) -> str:
         grade = info.data.get("grade")
         if grade is not None and value and not value.startswith(grade):
             raise ValueError(f"sub_grade {value} must belong to grade {grade}")
@@ -143,7 +143,7 @@ class LoanRequest(BaseModel):
 
     @field_validator("fico_range_high")
     @classmethod
-    def _fico_ordered(cls, value: int, info) -> int:
+    def _fico_ordered(cls, value: int, info: ValidationInfo) -> int:
         low = info.data.get("fico_range_low")
         if low is not None and value < low:
             raise ValueError("fico_range_high must be >= fico_range_low")
@@ -159,10 +159,13 @@ class LoanRequest(BaseModel):
 
     @field_validator(*INTEGER_BOUNDS)
     @classmethod
-    def _bounded_int(cls, value: int, info) -> int:
-        low, high = INTEGER_BOUNDS[info.field_name]
+    def _bounded_int(cls, value: int, info: ValidationInfo) -> int:
+        field_name = info.field_name or ""
+        if field_name not in INTEGER_BOUNDS:
+            return value
+        low, high = INTEGER_BOUNDS[field_name]
         if not low <= value <= high:
-            raise ValueError(f"{info.field_name} must be between {low} and {high}, got {value}")
+            raise ValueError(f"{field_name} must be between {low} and {high}, got {value}")
         return value
 
     def to_frame(self) -> pd.DataFrame:

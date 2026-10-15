@@ -19,12 +19,13 @@ import logging
 import os
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from sklearn.calibration import CalibratedClassifierCV
 
 from src.api.explain import explain
 from src.api.model import load_model
@@ -53,7 +54,7 @@ class ModelNotReady(RuntimeError):
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     started = time.perf_counter()
     app.state.model = load_model()
     app.state.model_version = "2.0.0"
@@ -78,7 +79,7 @@ app.add_middleware(
 
 
 @app.middleware("http")
-async def guard_request_size(request: Request, call_next: Callable):
+async def guard_request_size(request: Request, call_next: Callable[..., Awaitable[Response]]) -> Response:
     """Reject oversized bodies with 413 before any parsing happens."""
     request_id = request.headers.get("X-Request-ID") or uuid.uuid4().hex
     request.state.request_id = request_id
@@ -107,7 +108,7 @@ async def guard_request_size(request: Request, call_next: Callable):
 
 
 @app.exception_handler(Exception)
-async def unhandled_error(request: Request, exc: Exception):
+async def unhandled_error(request: Request, exc: Exception) -> Response:
     """Never leak a traceback to the caller; log it with the request ID.
 
     ``exc_info`` is passed the traceback object rather than set to True because
@@ -119,12 +120,12 @@ async def unhandled_error(request: Request, exc: Exception):
         "unhandled error rid=%s path=%s",
         request_id,
         request.url.path,
-        exc_info=exc.__traceback__,
+        exc_info=(type(exc), exc, exc.__traceback__),
     )
     return JSONResponse(status_code=500, content={"detail": "internal server error", "request_id": request_id})
 
 
-def _require_model(request: Request):
+def _require_model(request: Request) -> CalibratedClassifierCV:
     model = getattr(request.app.state, "model", None)
     if model is None:
         raise ModelNotReady("model is not loaded; /health reports readiness")
@@ -132,13 +133,13 @@ def _require_model(request: Request):
 
 
 @app.get("/health", tags=["ops"])
-def health(request: Request) -> dict:
+def health(request: Request) -> dict[str, object]:
     """Liveness. Always 200 so a crash loops rather than a restart loop."""
     return {"status": "ok", "service": app.title, "version": app.version}
 
 
 @app.get("/ready", tags=["ops"])
-def ready(request: Request) -> dict:
+def ready(request: Request) -> dict[str, object]:
     """Readiness. 503 while the model is being loaded."""
     if getattr(request.app.state, "model", None) is None:
         raise ModelNotReady("model unavailable")

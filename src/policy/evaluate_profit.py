@@ -22,7 +22,7 @@ FINE_GRID = np.arange(0.005, 1.0, 0.005)
 
 
 def cash_table(
-    path="data/raw/accepted_2007_to_2018Q4.csv.gz",
+    path: str = "data/raw/accepted_2007_to_2018Q4.csv.gz",
     operating_cost: float = OPERATING_COST,
 ) -> pd.DataFrame:
     """Load the cash columns and compute realised profit per loan."""
@@ -47,7 +47,12 @@ def cash_table(
     return frame
 
 
-def sweep(proba, y, cash_frame, thresholds=None) -> pd.DataFrame:
+def sweep(
+    proba: np.ndarray,
+    y: np.ndarray,
+    cash_frame: pd.DataFrame,
+    thresholds: tuple[float, ...] | None = None,
+) -> pd.DataFrame:
     """Total realised profit at each candidate approval threshold.
 
     Args:
@@ -60,7 +65,7 @@ def sweep(proba, y, cash_frame, thresholds=None) -> pd.DataFrame:
         One row per threshold with approval rate, realised default rate among
         approved loans, total profit, and profit per loan.
     """
-    thresholds = FINE_GRID if thresholds is None else np.asarray(thresholds)
+    grid = FINE_GRID if thresholds is None else np.asarray(thresholds, dtype=float)
     scores = np.asarray(proba, dtype=float)
     profits = cash_frame["realized_profit"].to_numpy(dtype=float)
     labels = np.asarray(y)
@@ -69,7 +74,7 @@ def sweep(proba, y, cash_frame, thresholds=None) -> pd.DataFrame:
         raise ValueError(f"proba ({len(scores)}), cash ({len(profits)}) and labels ({len(labels)}) must align")
 
     rows = []
-    for threshold in thresholds:
+    for threshold in grid:
         approved = scores < float(threshold)
         if not approved.any():
             continue
@@ -101,8 +106,8 @@ def sweep(proba, y, cash_frame, thresholds=None) -> pd.DataFrame:
 
 
 def bootstrap_ci(
-    cash_frame,
-    approve_mask,
+    cash_frame: pd.DataFrame,
+    approve_mask: np.ndarray,
     iterations: int = 500,
     seed: int = 42,
     alpha: float = 0.05,
@@ -124,20 +129,21 @@ def bootstrap_ci(
         draw = rng.choice(profits, size=n, replace=True)
         means[iteration] = float(draw.mean())
 
-    low, high = rng_free_percentile(means, (alpha / 2, 1 - alpha / 2))
+    low, high = rng_free_percentile(means, alpha / 2, 1 - alpha / 2)
     print(f"bootstrap profit/loan {profits.mean():,.0f} 95% CI [{low:,.0f}, {high:,.0f}]")
     return float(low), float(high)
 
 
-def rng_free_percentile(values: np.ndarray, quantiles) -> tuple[float, float]:
-    """Percentiles via quantile(), which is deterministic and avoids a second RNG."""
+def rng_free_percentile(values: np.ndarray, low: float, high: float) -> tuple[float, float]:
+    """Two percentiles via quantile(), which is deterministic and avoids a second RNG."""
     values = np.sort(np.asarray(values, dtype=float))
     if values.size < 2:
         raise ValueError("bootstrap produced a degenerate sample")
-    return tuple(float(v) for v in np.quantile(values, list(quantiles)))
+    low_value, high_value = np.quantile(values, (low, high))
+    return float(low_value), float(high_value)
 
 
-def baselines(cash_frame) -> None:
+def baselines(cash_frame: pd.DataFrame) -> None:
     """Print reference policies the learned threshold must beat."""
     total = cash_frame["realized_profit"].sum()
     print(f"approve-all USD total {total:,.0f} per loan {total / len(cash_frame):,.0f}")
@@ -151,7 +157,11 @@ def baselines(cash_frame) -> None:
     print(f"oracle USD {oracle:,.0f}")
 
 
-def sensitivity(cash_frame, operating_costs=(300.0, 500.0, 700.0), cost_of_funds=(0.0, 0.05)) -> None:
+def sensitivity(
+    cash_frame: pd.DataFrame,
+    operating_costs: tuple[float, ...] = (300.0, 500.0, 700.0),
+    cost_of_funds: tuple[float, ...] = (0.0, 0.05),
+) -> None:
     """Recompute approve-all profit across the operating-cost and funding-cost grid."""
     for cost in operating_costs:
         adjusted = cash_frame.copy()
