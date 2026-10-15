@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "loan-default-risk"
-version = "2.0.0"
+dynamic = ["version"]
 description = "Probability-of-default scoring with isotonic calibration, profit-thresholded policy and SHAP adverse-action reasons."
 readme = "README.md"
 license = { text = "MIT" }
@@ -69,6 +69,9 @@ Security = "https://github.com/WHITEJACK5/loan-default-risk/blob/main/SECURITY.m
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+
+[tool.hatch.version]
+path = "src/loan_default_risk/__init__.py"
 
 # --- ruff ---
 # The rule set is chosen to catch real defects rather than to force one style:

@@ -37,6 +37,7 @@ from src.api.schemas import (
     PredictResponse,
 )
 from src.experiments.assign import assign
+from src.loan_default_risk import __version__
 from src.loan_default_risk.config import settings
 
 # --- request guard rails (all overridable per deployment) ---
@@ -57,7 +58,7 @@ class ModelNotReady(RuntimeError):
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     started = time.perf_counter()
     app.state.model = load_model()
-    app.state.model_version = "2.0.0"
+    app.state.model_version = __version__
     logger.info("model loaded version=%s", app.state.model_version)
     app.state.ready_at = time.perf_counter() - started
     yield
@@ -66,7 +67,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 app = FastAPI(
     title="loan-default-risk",
-    version="2.0.0",
+    version=__version__,
     description="Probability-of-default scoring with profit-thresholded decisions and adverse-action reasons.",
     lifespan=lifespan,
 )
