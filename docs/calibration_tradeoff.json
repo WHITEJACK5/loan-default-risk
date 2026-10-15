@@ -1,0 +1,20 @@
+{
+  "folds_served_by_incumbent": 5,
+  "incumbent_ensemble_true": {
+    "roc": 0.7038,
+    "brier": 0.1557,
+    "single_row_ms": 135.9,
+    "batch_ms_per_row": 1.57
+  },
+  "candidate_ensemble_false": {
+    "roc": 0.7029,
+    "brier": 0.1558,
+    "single_row_ms": 26.5,
+    "batch_ms_per_row": 0.33
+  },
+  "delta": {
+    "roc": -0.0009,
+    "brier": 0.0001,
+    "single_row_speedup": 5.13
+  }
+}
