@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import joblib
 import pandas as pd
@@ -27,6 +28,9 @@ from sklearn.metrics import (
 from src.loan_default_risk.config import settings
 from src.loan_default_risk.modeling import build_model
 from src.loan_default_risk.provenance import read_data_sha256, resolve_git_sha, sha256_file
+
+if TYPE_CHECKING:
+    import numpy as np
 
 SPLITS = ("train", "val", "test")
 METADATA_COLUMNS = ["target", "loan_status", "issue_d", "issue_year"]
@@ -56,7 +60,7 @@ def load_splits() -> dict[str, tuple[pd.DataFrame, pd.Series]]:
     return loaded
 
 
-def metrics(y, p) -> dict[str, float]:
+def metrics(y: pd.Series | np.ndarray, p: np.ndarray) -> dict[str, float]:
     """Ranking, calibration and top-of-curve metrics at a single probability scale."""
     fpr, tpr, _ = roc_curve(y, p)
     roc = float(roc_auc_score(y, p))

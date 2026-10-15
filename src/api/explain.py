@@ -9,14 +9,18 @@ so the indicators are summed back to their source column before ranking.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 
 REASON_PRECISION = 3
 
 
-def source_of_features(preprocessor) -> tuple[list[str], list[str]]:
+def source_of_features(preprocessor: ColumnTransformer) -> tuple[list[str], list[str]]:
     """Pair every transformed column with the raw feature it came from.
 
     Args:
@@ -57,8 +61,13 @@ def source_of_features(preprocessor) -> tuple[list[str], list[str]]:
     return transformed, source
 
 
-def _find_onehot(transformer):
-    """Return the validated OneHotEncoder inside a (possibly nested) pipeline."""
+def _find_onehot(transformer: Any) -> Any:
+    """Return the validated OneHotEncoder inside a (possibly nested) pipeline.
+
+    ``transformer`` is an arbitrary fitted sklearn transformer whose concrete
+    type is not knowable statically, hence ``Any``: the caller validates the
+    result by calling ``.categories_`` on it.
+    """
     steps = getattr(transformer, "steps", None)
     if steps is None:
         return transformer if hasattr(transformer, "categories_") else None
@@ -68,7 +77,7 @@ def _find_onehot(transformer):
     return None
 
 
-def _inner_pipeline(model):
+def _inner_pipeline(model: CalibratedClassifierCV) -> Pipeline:
     """Unwrap the first calibrated base estimator, a Pipeline(pre, clf)."""
     inner = model.calibrated_classifiers_[0].estimator
     if not isinstance(inner, Pipeline) or "clf" not in inner.named_steps:
@@ -76,7 +85,7 @@ def _inner_pipeline(model):
     return inner
 
 
-def _shap_values(model, x_transformed: np.ndarray) -> np.ndarray:
+def _shap_values(model: CalibratedClassifierCV, x_transformed: np.ndarray) -> np.ndarray:
     """SHAP values in log-odds space, shape ``(1, n_transformed_features)``."""
     import warnings
 
@@ -97,7 +106,7 @@ def _shap_values(model, x_transformed: np.ndarray) -> np.ndarray:
     return np.atleast_2d(values)
 
 
-def credit_assignment(model, frame: pd.DataFrame) -> dict[str, float]:
+def credit_assignment(model: CalibratedClassifierCV, frame: pd.DataFrame) -> dict[str, float]:
     """Map each raw feature to its total SHAP contribution for one row.
 
     The values are in log-odds space, so a feature's magnitude is comparable
@@ -118,7 +127,7 @@ def credit_assignment(model, frame: pd.DataFrame) -> dict[str, float]:
     return credits
 
 
-def _format_value(value) -> str:
+def _format_value(value: object) -> str:
     """Render a feature value compactly: 20000.0 -> 20000, 13.5 -> 13.5."""
     if isinstance(value, float) and value.is_integer():
         return str(int(value))
@@ -126,7 +135,7 @@ def _format_value(value) -> str:
 
 
 def explain(
-    model,
+    model: CalibratedClassifierCV,
     frame: pd.DataFrame,
     top_k: int = 4,
     only_raise_risk: bool = True,

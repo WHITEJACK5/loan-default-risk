@@ -7,15 +7,20 @@ API serves.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pandas as pd
 from sklearn.metrics import average_precision_score, brier_score_loss, roc_auc_score, roc_curve
 
 from src.api.model import load_model
 
+if TYPE_CHECKING:
+    import numpy as np
+
 METADATA_COLUMNS = ["target", "loan_status", "issue_d", "issue_year"]
 
 
-def metrics(y, p) -> dict[str, float]:
+def metrics(y: pd.Series | np.ndarray, p: np.ndarray) -> dict[str, float]:
     """Ranking, calibration and top-of-curve metrics at a single probability scale."""
     fpr, tpr, _ = roc_curve(y, p)
     roc = float(roc_auc_score(y, p))

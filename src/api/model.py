@@ -25,6 +25,7 @@ import os
 from pathlib import Path
 
 import joblib
+from sklearn.calibration import CalibratedClassifierCV
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +77,7 @@ def resolve_model_path(path: str | Path | None = None) -> Path:
     return candidate
 
 
-def load_model(path: str | Path | None = None):
+def load_model(path: str | Path | None = None) -> CalibratedClassifierCV:
     """Load the persisted model, refusing an altered or out-of-bounds binary.
 
     Args:

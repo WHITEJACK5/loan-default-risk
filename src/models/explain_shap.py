@@ -31,7 +31,7 @@ def load() -> tuple[pd.DataFrame, pd.Series, pd.DataFrame]:
     return train.drop(columns=drop), train["target"], val.drop(columns=drop)
 
 
-def fit_calibrated(x_train, y_train) -> CalibratedClassifierCV:
+def fit_calibrated(x_train: pd.DataFrame, y_train: pd.Series) -> CalibratedClassifierCV:
     model = CalibratedClassifierCV(estimator=build_model(lender_side="B"), method="isotonic", cv=5)
     model.fit(x_train, y_train)
     return model

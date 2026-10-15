@@ -33,7 +33,7 @@ CAT_A = ["term", "grade", "sub_grade", "emp_length", "home_ownership", "verifica
 CAT_B = ["term", "emp_length", "home_ownership", "verification_status", "purpose", "addr_state"]
 
 
-def get_preprocessor(for_trees: bool = True, lender_side: str = "A"):
+def get_preprocessor(for_trees: bool = True, lender_side: str = "A") -> ColumnTransformer:
     NUM = NUM_B if lender_side == "B" else NUM_A
     CAT = CAT_B if lender_side == "B" else CAT_A
     if for_trees:

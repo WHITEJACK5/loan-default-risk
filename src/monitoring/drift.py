@@ -69,7 +69,8 @@ def cat_psi(ref: pd.Series, cur: pd.Series) -> float:
 
 
 def report(
-    path: str = "docs/drift_report.md", columns=("int_rate", "dti", "annual_inc", "revol_util")
+    path: str = "docs/drift_report.md",
+    columns: tuple[str, ...] = ("int_rate", "dti", "annual_inc", "revol_util"),
 ) -> list[tuple[str, float, str]]:
     """Compare the validation window against the test window on numeric columns."""
     val = pd.read_parquet("data/processed/val.parquet")

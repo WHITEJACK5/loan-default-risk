@@ -12,6 +12,7 @@ therefore a bug.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import matplotlib
 
@@ -28,11 +29,14 @@ from sklearn.metrics import (
 from src.loan_default_risk.modeling import build_model
 from src.models.train import load_splits
 
+if TYPE_CHECKING:
+    import numpy as np
+
 CALIBRATION_FOLDS = 5
 BINS = 10
 
 
-def report(y, p, label: str) -> None:
+def report(y: np.ndarray, p: np.ndarray, label: str) -> None:
     """Print the calibration-stable metrics for one probability vector."""
     print(
         f"{label:>8} Brier={brier_score_loss(y, p):.4f} "
