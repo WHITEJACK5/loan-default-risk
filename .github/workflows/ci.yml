@@ -17,8 +17,40 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.11", cache: pip}
-      - run: pip install mypy pandas scikit-learn
+      - run: pip install mypy pandas scikit-learn lightgbm
       - run: mypy src
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install bandit[toml]
+      # -c points at pyproject.toml so the skip/ignore list is reviewed rather
+      # than passed on the command line where nobody reads it.
+      - run: bandit -c pyproject.toml -r src scripts
+      # The model binary is a pickle; refuse to ship one whose digest is not
+      # recorded, because src/api/model.py will reject it at startup anyway.
+      - name: verify the model digest is recorded
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          meta = json.loads(pathlib.Path("artifacts/model_meta.json").read_text())
+          if not meta.get("model_sha256"):
+              sys.exit("artifacts/model_meta.json has no model_sha256")
+          print("model_sha256:", meta["model_sha256"])
+          PY
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      # The metrics block in README is generated. This exits 1 when the
+      # committed README disagrees with artifacts/metrics.json, so a metric
+      # change that never reached the README fails the build instead of
+      # quietly shipping a stale table.
+      - run: python scripts/render_readme.py --check
   test:
     runs-on: ubuntu-latest
     steps:
