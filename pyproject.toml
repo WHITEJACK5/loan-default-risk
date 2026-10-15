@@ -111,6 +111,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"space/app.py" = ["PLR0913", "PLR0917"]  # gradio binds Interface inputs positionally
 "tests/**" = ["ANN", "S101", "PLR2004", "B905", "FBT001", "FBT003"]
 "scripts/**" = ["ANN", "INP001", "T201", "S603", "S607"]
 "src/loan_default_risk/tuning.py" = ["ANN", "D"]
