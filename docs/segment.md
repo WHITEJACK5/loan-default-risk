@@ -1,9 +1,80 @@
-# Segment performance (not fair-lending)
+# Segment performance (descriptive, not fair-lending)
 
-Per purpose segment on 	est 225k:
-| purpose | n | ROC | mean_pred | mean_actual | approval_rate thr 0.05 |
-|---|---|---|---|---|---|
-| debt_consolidation | 123773 | 0.381 PR 0.325 actual 0.213 approve 0.42 |
-| credit_card | 43671 | 0.325 PR 0.325 actual 0.213 approve 0.38 |
-| home_improvement | 18271 | 0.327 PR 0.327 actual 0.213 approve 0.40 |
-Approval ratio geography CA vs TX 0.98 disparate-impact proxy, ablation with/without addr_state delta ROC 0.02, protected attributes absent so not fair-lending.
+Test window: 225,611 loans, threshold 0.05.
+ROC is undefined for a single-class segment and is left blank.
+
+| feature | level | n | default rate | mean PD | approval rate | ROC |
+|---|---|---|---|---|---|---|
+| purpose | car | 2,879 | 0.155 | 0.123 | 0.165 | 0.7366 |
+| purpose | credit_card | 43,671 | 0.184 | 0.142 | 0.117 | 0.6853 |
+| purpose | debt_consolidation | 123,773 | 0.223 | 0.179 | 0.059 | 0.6811 |
+| purpose | home_improvement | 18,271 | 0.184 | 0.145 | 0.128 | 0.683 |
+| purpose | house | 2,278 | 0.206 | 0.169 | 0.088 | 0.7026 |
+| purpose | major_purchase | 6,096 | 0.217 | 0.150 | 0.119 | 0.7074 |
+| purpose | medical | 3,740 | 0.236 | 0.157 | 0.089 | 0.6802 |
+| purpose | moving | 1,994 | 0.262 | 0.176 | 0.043 | 0.6952 |
+| purpose | other | 18,134 | 0.223 | 0.167 | 0.060 | 0.6945 |
+| purpose | renewable_energy | 166 | 0.247 | 0.153 | 0.048 | 0.6488 |
+| purpose | small_business | 2,368 | 0.361 | 0.254 | 0.001 | 0.656 |
+| purpose | vacation | 2,239 | 0.199 | 0.130 | 0.092 | 0.7109 |
+| purpose | wedding | 2 | 0.500 | 0.110 | 0.000 | 0.0 |
+| grade | A | 39,707 | 0.063 | 0.075 | 0.344 | 0.656 |
+| grade | B | 62,229 | 0.147 | 0.136 | 0.051 | 0.6048 |
+| grade | C | 69,668 | 0.246 | 0.190 | 0.011 | 0.6047 |
+| grade | D | 34,186 | 0.322 | 0.220 | 0.006 | 0.5973 |
+| grade | E | 13,242 | 0.384 | 0.253 | 0.004 | 0.605 |
+| grade | F | 4,309 | 0.457 | 0.307 | 0.002 | 0.5887 |
+| grade | G | 2,270 | 0.501 | 0.318 | 0.001 | 0.5741 |
+| addr_state | AK | 443 | 0.221 | 0.150 | 0.095 | 0.673 |
+| addr_state | AL | 2,670 | 0.240 | 0.181 | 0.062 | 0.6829 |
+| addr_state | AR | 1,620 | 0.264 | 0.177 | 0.061 | 0.6862 |
+| addr_state | AZ | 6,028 | 0.200 | 0.170 | 0.070 | 0.6857 |
+| addr_state | CA | 32,580 | 0.215 | 0.162 | 0.085 | 0.6889 |
+| addr_state | CO | 5,581 | 0.153 | 0.140 | 0.124 | 0.7046 |
+| addr_state | CT | 3,186 | 0.188 | 0.154 | 0.095 | 0.6919 |
+| addr_state | DC | 474 | 0.156 | 0.106 | 0.245 | 0.6937 |
+| addr_state | DE | 660 | 0.209 | 0.175 | 0.074 | 0.694 |
+| addr_state | FL | 16,740 | 0.233 | 0.183 | 0.048 | 0.6694 |
+| addr_state | GA | 6,987 | 0.192 | 0.166 | 0.082 | 0.6905 |
+| addr_state | HI | 1,090 | 0.194 | 0.173 | 0.080 | 0.7012 |
+| addr_state | ID | 818 | 0.170 | 0.188 | 0.046 | 0.6108 |
+| addr_state | IL | 7,926 | 0.191 | 0.151 | 0.105 | 0.6927 |
+| addr_state | IN | 3,939 | 0.218 | 0.172 | 0.072 | 0.6988 |
+| addr_state | KS | 1,650 | 0.190 | 0.131 | 0.149 | 0.6797 |
+| addr_state | KY | 2,128 | 0.209 | 0.167 | 0.077 | 0.6886 |
+| addr_state | LA | 2,455 | 0.256 | 0.172 | 0.079 | 0.6958 |
+| addr_state | MA | 5,228 | 0.218 | 0.169 | 0.083 | 0.6888 |
+| addr_state | MD | 5,274 | 0.237 | 0.168 | 0.073 | 0.6917 |
+| addr_state | ME | 678 | 0.124 | 0.171 | 0.074 | 0.6767 |
+| addr_state | MI | 6,023 | 0.223 | 0.174 | 0.067 | 0.6916 |
+| addr_state | MN | 4,012 | 0.197 | 0.168 | 0.079 | 0.6887 |
+| addr_state | MO | 3,529 | 0.231 | 0.172 | 0.074 | 0.7006 |
+| addr_state | MS | 1,333 | 0.291 | 0.192 | 0.050 | 0.681 |
+| addr_state | MT | 634 | 0.172 | 0.142 | 0.126 | 0.6808 |
+| addr_state | NC | 6,460 | 0.219 | 0.171 | 0.068 | 0.6976 |
+| addr_state | ND | 461 | 0.197 | 0.175 | 0.048 | 0.6597 |
+| addr_state | NE | 1,091 | 0.246 | 0.174 | 0.062 | 0.6856 |
+| addr_state | NH | 1,119 | 0.162 | 0.129 | 0.147 | 0.6459 |
+| addr_state | NJ | 7,379 | 0.231 | 0.172 | 0.071 | 0.6801 |
+| addr_state | NM | 1,171 | 0.228 | 0.168 | 0.062 | 0.6891 |
+| addr_state | NV | 3,977 | 0.215 | 0.185 | 0.038 | 0.6591 |
+| addr_state | NY | 17,470 | 0.255 | 0.177 | 0.060 | 0.6845 |
+| addr_state | OH | 6,784 | 0.194 | 0.173 | 0.066 | 0.6909 |
+| addr_state | OK | 2,021 | 0.242 | 0.175 | 0.070 | 0.697 |
+| addr_state | OR | 2,813 | 0.140 | 0.147 | 0.114 | 0.6927 |
+| addr_state | PA | 7,262 | 0.215 | 0.170 | 0.074 | 0.6799 |
+| addr_state | RI | 999 | 0.175 | 0.167 | 0.081 | 0.6911 |
+| addr_state | SC | 2,740 | 0.154 | 0.141 | 0.138 | 0.6766 |
+| addr_state | SD | 460 | 0.220 | 0.171 | 0.072 | 0.6871 |
+| addr_state | TN | 3,621 | 0.210 | 0.181 | 0.064 | 0.696 |
+| addr_state | TX | 18,813 | 0.221 | 0.160 | 0.089 | 0.6802 |
+| addr_state | UT | 1,922 | 0.142 | 0.162 | 0.086 | 0.6461 |
+| addr_state | VA | 6,046 | 0.202 | 0.168 | 0.084 | 0.6855 |
+| addr_state | VT | 448 | 0.150 | 0.131 | 0.156 | 0.7264 |
+| addr_state | WA | 5,058 | 0.147 | 0.147 | 0.105 | 0.6682 |
+| addr_state | WI | 3,053 | 0.225 | 0.161 | 0.096 | 0.6977 |
+| addr_state | WV | 356 | 0.104 | 0.131 | 0.160 | 0.6614 |
+| addr_state | WY | 401 | 0.157 | 0.134 | 0.184 | 0.6376 |
+
+Approval-rate spread across all segments: 0.344
+

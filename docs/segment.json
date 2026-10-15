@@ -1,0 +1,632 @@
+[
+  {
+    "feature": "purpose",
+    "level": "car",
+    "n": 2879,
+    "default_rate": 0.1553,
+    "mean_pd": 0.1229,
+    "approval_rate": 0.1646,
+    "roc": 0.7366
+  },
+  {
+    "feature": "purpose",
+    "level": "credit_card",
+    "n": 43671,
+    "default_rate": 0.1844,
+    "mean_pd": 0.1421,
+    "approval_rate": 0.1174,
+    "roc": 0.6853
+  },
+  {
+    "feature": "purpose",
+    "level": "debt_consolidation",
+    "n": 123773,
+    "default_rate": 0.2227,
+    "mean_pd": 0.1792,
+    "approval_rate": 0.0593,
+    "roc": 0.6811
+  },
+  {
+    "feature": "purpose",
+    "level": "home_improvement",
+    "n": 18271,
+    "default_rate": 0.1843,
+    "mean_pd": 0.1455,
+    "approval_rate": 0.1275,
+    "roc": 0.683
+  },
+  {
+    "feature": "purpose",
+    "level": "house",
+    "n": 2278,
+    "default_rate": 0.2063,
+    "mean_pd": 0.1692,
+    "approval_rate": 0.0882,
+    "roc": 0.7026
+  },
+  {
+    "feature": "purpose",
+    "level": "major_purchase",
+    "n": 6096,
+    "default_rate": 0.2172,
+    "mean_pd": 0.1499,
+    "approval_rate": 0.1188,
+    "roc": 0.7074
+  },
+  {
+    "feature": "purpose",
+    "level": "medical",
+    "n": 3740,
+    "default_rate": 0.2356,
+    "mean_pd": 0.1569,
+    "approval_rate": 0.0893,
+    "roc": 0.6802
+  },
+  {
+    "feature": "purpose",
+    "level": "moving",
+    "n": 1994,
+    "default_rate": 0.2623,
+    "mean_pd": 0.1763,
+    "approval_rate": 0.0431,
+    "roc": 0.6952
+  },
+  {
+    "feature": "purpose",
+    "level": "other",
+    "n": 18134,
+    "default_rate": 0.2228,
+    "mean_pd": 0.1668,
+    "approval_rate": 0.0598,
+    "roc": 0.6945
+  },
+  {
+    "feature": "purpose",
+    "level": "renewable_energy",
+    "n": 166,
+    "default_rate": 0.247,
+    "mean_pd": 0.1531,
+    "approval_rate": 0.0482,
+    "roc": 0.6488
+  },
+  {
+    "feature": "purpose",
+    "level": "small_business",
+    "n": 2368,
+    "default_rate": 0.3615,
+    "mean_pd": 0.2538,
+    "approval_rate": 0.0008,
+    "roc": 0.656
+  },
+  {
+    "feature": "purpose",
+    "level": "vacation",
+    "n": 2239,
+    "default_rate": 0.1992,
+    "mean_pd": 0.13,
+    "approval_rate": 0.0925,
+    "roc": 0.7109
+  },
+  {
+    "feature": "purpose",
+    "level": "wedding",
+    "n": 2,
+    "default_rate": 0.5,
+    "mean_pd": 0.1102,
+    "approval_rate": 0.0,
+    "roc": 0.0
+  },
+  {
+    "feature": "grade",
+    "level": "A",
+    "n": 39707,
+    "default_rate": 0.0632,
+    "mean_pd": 0.0753,
+    "approval_rate": 0.3441,
+    "roc": 0.656
+  },
+  {
+    "feature": "grade",
+    "level": "B",
+    "n": 62229,
+    "default_rate": 0.1474,
+    "mean_pd": 0.1358,
+    "approval_rate": 0.0511,
+    "roc": 0.6048
+  },
+  {
+    "feature": "grade",
+    "level": "C",
+    "n": 69668,
+    "default_rate": 0.2462,
+    "mean_pd": 0.1896,
+    "approval_rate": 0.0115,
+    "roc": 0.6047
+  },
+  {
+    "feature": "grade",
+    "level": "D",
+    "n": 34186,
+    "default_rate": 0.3216,
+    "mean_pd": 0.2204,
+    "approval_rate": 0.0064,
+    "roc": 0.5973
+  },
+  {
+    "feature": "grade",
+    "level": "E",
+    "n": 13242,
+    "default_rate": 0.3836,
+    "mean_pd": 0.2527,
+    "approval_rate": 0.0035,
+    "roc": 0.605
+  },
+  {
+    "feature": "grade",
+    "level": "F",
+    "n": 4309,
+    "default_rate": 0.4572,
+    "mean_pd": 0.3067,
+    "approval_rate": 0.0023,
+    "roc": 0.5887
+  },
+  {
+    "feature": "grade",
+    "level": "G",
+    "n": 2270,
+    "default_rate": 0.5009,
+    "mean_pd": 0.3181,
+    "approval_rate": 0.0009,
+    "roc": 0.5741
+  },
+  {
+    "feature": "addr_state",
+    "level": "AK",
+    "n": 443,
+    "default_rate": 0.2212,
+    "mean_pd": 0.1497,
+    "approval_rate": 0.0948,
+    "roc": 0.673
+  },
+  {
+    "feature": "addr_state",
+    "level": "AL",
+    "n": 2670,
+    "default_rate": 0.2397,
+    "mean_pd": 0.181,
+    "approval_rate": 0.0618,
+    "roc": 0.6829
+  },
+  {
+    "feature": "addr_state",
+    "level": "AR",
+    "n": 1620,
+    "default_rate": 0.2642,
+    "mean_pd": 0.1773,
+    "approval_rate": 0.0611,
+    "roc": 0.6862
+  },
+  {
+    "feature": "addr_state",
+    "level": "AZ",
+    "n": 6028,
+    "default_rate": 0.2001,
+    "mean_pd": 0.1697,
+    "approval_rate": 0.0698,
+    "roc": 0.6857
+  },
+  {
+    "feature": "addr_state",
+    "level": "CA",
+    "n": 32580,
+    "default_rate": 0.2153,
+    "mean_pd": 0.1619,
+    "approval_rate": 0.085,
+    "roc": 0.6889
+  },
+  {
+    "feature": "addr_state",
+    "level": "CO",
+    "n": 5581,
+    "default_rate": 0.1527,
+    "mean_pd": 0.14,
+    "approval_rate": 0.1244,
+    "roc": 0.7046
+  },
+  {
+    "feature": "addr_state",
+    "level": "CT",
+    "n": 3186,
+    "default_rate": 0.188,
+    "mean_pd": 0.1538,
+    "approval_rate": 0.0948,
+    "roc": 0.6919
+  },
+  {
+    "feature": "addr_state",
+    "level": "DC",
+    "n": 474,
+    "default_rate": 0.1561,
+    "mean_pd": 0.1061,
+    "approval_rate": 0.2447,
+    "roc": 0.6937
+  },
+  {
+    "feature": "addr_state",
+    "level": "DE",
+    "n": 660,
+    "default_rate": 0.2091,
+    "mean_pd": 0.1748,
+    "approval_rate": 0.0742,
+    "roc": 0.694
+  },
+  {
+    "feature": "addr_state",
+    "level": "FL",
+    "n": 16740,
+    "default_rate": 0.2327,
+    "mean_pd": 0.183,
+    "approval_rate": 0.048,
+    "roc": 0.6694
+  },
+  {
+    "feature": "addr_state",
+    "level": "GA",
+    "n": 6987,
+    "default_rate": 0.1921,
+    "mean_pd": 0.1656,
+    "approval_rate": 0.0824,
+    "roc": 0.6905
+  },
+  {
+    "feature": "addr_state",
+    "level": "HI",
+    "n": 1090,
+    "default_rate": 0.1936,
+    "mean_pd": 0.1734,
+    "approval_rate": 0.0798,
+    "roc": 0.7012
+  },
+  {
+    "feature": "addr_state",
+    "level": "ID",
+    "n": 818,
+    "default_rate": 0.1699,
+    "mean_pd": 0.1875,
+    "approval_rate": 0.0465,
+    "roc": 0.6108
+  },
+  {
+    "feature": "addr_state",
+    "level": "IL",
+    "n": 7926,
+    "default_rate": 0.1906,
+    "mean_pd": 0.1507,
+    "approval_rate": 0.1046,
+    "roc": 0.6927
+  },
+  {
+    "feature": "addr_state",
+    "level": "IN",
+    "n": 3939,
+    "default_rate": 0.2178,
+    "mean_pd": 0.1725,
+    "approval_rate": 0.0724,
+    "roc": 0.6988
+  },
+  {
+    "feature": "addr_state",
+    "level": "KS",
+    "n": 1650,
+    "default_rate": 0.1903,
+    "mean_pd": 0.1306,
+    "approval_rate": 0.1491,
+    "roc": 0.6797
+  },
+  {
+    "feature": "addr_state",
+    "level": "KY",
+    "n": 2128,
+    "default_rate": 0.2091,
+    "mean_pd": 0.1668,
+    "approval_rate": 0.0775,
+    "roc": 0.6886
+  },
+  {
+    "feature": "addr_state",
+    "level": "LA",
+    "n": 2455,
+    "default_rate": 0.2562,
+    "mean_pd": 0.1718,
+    "approval_rate": 0.0786,
+    "roc": 0.6958
+  },
+  {
+    "feature": "addr_state",
+    "level": "MA",
+    "n": 5228,
+    "default_rate": 0.2181,
+    "mean_pd": 0.1685,
+    "approval_rate": 0.0834,
+    "roc": 0.6888
+  },
+  {
+    "feature": "addr_state",
+    "level": "MD",
+    "n": 5274,
+    "default_rate": 0.2366,
+    "mean_pd": 0.1676,
+    "approval_rate": 0.0728,
+    "roc": 0.6917
+  },
+  {
+    "feature": "addr_state",
+    "level": "ME",
+    "n": 678,
+    "default_rate": 0.1239,
+    "mean_pd": 0.1711,
+    "approval_rate": 0.0737,
+    "roc": 0.6767
+  },
+  {
+    "feature": "addr_state",
+    "level": "MI",
+    "n": 6023,
+    "default_rate": 0.2233,
+    "mean_pd": 0.174,
+    "approval_rate": 0.0667,
+    "roc": 0.6916
+  },
+  {
+    "feature": "addr_state",
+    "level": "MN",
+    "n": 4012,
+    "default_rate": 0.1972,
+    "mean_pd": 0.1676,
+    "approval_rate": 0.079,
+    "roc": 0.6887
+  },
+  {
+    "feature": "addr_state",
+    "level": "MO",
+    "n": 3529,
+    "default_rate": 0.2309,
+    "mean_pd": 0.1716,
+    "approval_rate": 0.074,
+    "roc": 0.7006
+  },
+  {
+    "feature": "addr_state",
+    "level": "MS",
+    "n": 1333,
+    "default_rate": 0.2911,
+    "mean_pd": 0.1918,
+    "approval_rate": 0.0503,
+    "roc": 0.681
+  },
+  {
+    "feature": "addr_state",
+    "level": "MT",
+    "n": 634,
+    "default_rate": 0.1719,
+    "mean_pd": 0.1423,
+    "approval_rate": 0.1262,
+    "roc": 0.6808
+  },
+  {
+    "feature": "addr_state",
+    "level": "NC",
+    "n": 6460,
+    "default_rate": 0.2186,
+    "mean_pd": 0.171,
+    "approval_rate": 0.068,
+    "roc": 0.6976
+  },
+  {
+    "feature": "addr_state",
+    "level": "ND",
+    "n": 461,
+    "default_rate": 0.1974,
+    "mean_pd": 0.1752,
+    "approval_rate": 0.0477,
+    "roc": 0.6597
+  },
+  {
+    "feature": "addr_state",
+    "level": "NE",
+    "n": 1091,
+    "default_rate": 0.2456,
+    "mean_pd": 0.1738,
+    "approval_rate": 0.0623,
+    "roc": 0.6856
+  },
+  {
+    "feature": "addr_state",
+    "level": "NH",
+    "n": 1119,
+    "default_rate": 0.1618,
+    "mean_pd": 0.1294,
+    "approval_rate": 0.1466,
+    "roc": 0.6459
+  },
+  {
+    "feature": "addr_state",
+    "level": "NJ",
+    "n": 7379,
+    "default_rate": 0.2305,
+    "mean_pd": 0.1722,
+    "approval_rate": 0.0707,
+    "roc": 0.6801
+  },
+  {
+    "feature": "addr_state",
+    "level": "NM",
+    "n": 1171,
+    "default_rate": 0.228,
+    "mean_pd": 0.1677,
+    "approval_rate": 0.0623,
+    "roc": 0.6891
+  },
+  {
+    "feature": "addr_state",
+    "level": "NV",
+    "n": 3977,
+    "default_rate": 0.2152,
+    "mean_pd": 0.1848,
+    "approval_rate": 0.0382,
+    "roc": 0.6591
+  },
+  {
+    "feature": "addr_state",
+    "level": "NY",
+    "n": 17470,
+    "default_rate": 0.2549,
+    "mean_pd": 0.1773,
+    "approval_rate": 0.0605,
+    "roc": 0.6845
+  },
+  {
+    "feature": "addr_state",
+    "level": "OH",
+    "n": 6784,
+    "default_rate": 0.194,
+    "mean_pd": 0.1728,
+    "approval_rate": 0.0663,
+    "roc": 0.6909
+  },
+  {
+    "feature": "addr_state",
+    "level": "OK",
+    "n": 2021,
+    "default_rate": 0.2425,
+    "mean_pd": 0.175,
+    "approval_rate": 0.0703,
+    "roc": 0.697
+  },
+  {
+    "feature": "addr_state",
+    "level": "OR",
+    "n": 2813,
+    "default_rate": 0.1397,
+    "mean_pd": 0.1474,
+    "approval_rate": 0.1141,
+    "roc": 0.6927
+  },
+  {
+    "feature": "addr_state",
+    "level": "PA",
+    "n": 7262,
+    "default_rate": 0.2155,
+    "mean_pd": 0.1699,
+    "approval_rate": 0.0742,
+    "roc": 0.6799
+  },
+  {
+    "feature": "addr_state",
+    "level": "RI",
+    "n": 999,
+    "default_rate": 0.1752,
+    "mean_pd": 0.1674,
+    "approval_rate": 0.0811,
+    "roc": 0.6911
+  },
+  {
+    "feature": "addr_state",
+    "level": "SC",
+    "n": 2740,
+    "default_rate": 0.1544,
+    "mean_pd": 0.1407,
+    "approval_rate": 0.138,
+    "roc": 0.6766
+  },
+  {
+    "feature": "addr_state",
+    "level": "SD",
+    "n": 460,
+    "default_rate": 0.2196,
+    "mean_pd": 0.1714,
+    "approval_rate": 0.0717,
+    "roc": 0.6871
+  },
+  {
+    "feature": "addr_state",
+    "level": "TN",
+    "n": 3621,
+    "default_rate": 0.2099,
+    "mean_pd": 0.1808,
+    "approval_rate": 0.0638,
+    "roc": 0.696
+  },
+  {
+    "feature": "addr_state",
+    "level": "TX",
+    "n": 18813,
+    "default_rate": 0.2207,
+    "mean_pd": 0.1604,
+    "approval_rate": 0.0888,
+    "roc": 0.6802
+  },
+  {
+    "feature": "addr_state",
+    "level": "UT",
+    "n": 1922,
+    "default_rate": 0.142,
+    "mean_pd": 0.1618,
+    "approval_rate": 0.0864,
+    "roc": 0.6461
+  },
+  {
+    "feature": "addr_state",
+    "level": "VA",
+    "n": 6046,
+    "default_rate": 0.2021,
+    "mean_pd": 0.1684,
+    "approval_rate": 0.084,
+    "roc": 0.6855
+  },
+  {
+    "feature": "addr_state",
+    "level": "VT",
+    "n": 448,
+    "default_rate": 0.1496,
+    "mean_pd": 0.1311,
+    "approval_rate": 0.1562,
+    "roc": 0.7264
+  },
+  {
+    "feature": "addr_state",
+    "level": "WA",
+    "n": 5058,
+    "default_rate": 0.1475,
+    "mean_pd": 0.1472,
+    "approval_rate": 0.1054,
+    "roc": 0.6682
+  },
+  {
+    "feature": "addr_state",
+    "level": "WI",
+    "n": 3053,
+    "default_rate": 0.2254,
+    "mean_pd": 0.1611,
+    "approval_rate": 0.0963,
+    "roc": 0.6977
+  },
+  {
+    "feature": "addr_state",
+    "level": "WV",
+    "n": 356,
+    "default_rate": 0.1039,
+    "mean_pd": 0.1311,
+    "approval_rate": 0.1601,
+    "roc": 0.6614
+  },
+  {
+    "feature": "addr_state",
+    "level": "WY",
+    "n": 401,
+    "default_rate": 0.1571,
+    "mean_pd": 0.134,
+    "approval_rate": 0.1845,
+    "roc": 0.6376
+  }
+]
