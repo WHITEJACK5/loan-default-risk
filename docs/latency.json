@@ -1,8 +1,9 @@
 {
-  "model_load_seconds": 0.922,
-  "rss_mb_after_load": 187.3,
+  "model_load_seconds": 0.96,
+  "rss_mb_after_load": 187.2,
   "requests": 50,
-  "p50_ms": 29.35,
-  "p95_ms": 38.03,
-  "max_ms": 49.71
+  "p50_ms": 23.99,
+  "p95_ms": 25.78,
+  "p99_ms": 26.32,
+  "max_ms": 32.03
 }

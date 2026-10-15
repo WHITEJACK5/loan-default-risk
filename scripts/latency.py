@@ -58,12 +58,14 @@ def main() -> None:
                 raise SystemExit(f"/predict returned {response.status_code}")
 
     rss = process.memory_info().rss / 1048576
+    ordered = sorted(timings)
     report = {
         "model_load_seconds": round(load_seconds, 3),
         "rss_mb_after_load": round(rss, 1),
         "requests": REQUESTS,
         "p50_ms": round(statistics.median(timings), 2),
-        "p95_ms": round(sorted(timings)[int(REQUESTS * 0.95) - 1], 2),
+        "p95_ms": round(ordered[int(REQUESTS * 0.95) - 1], 2),
+        "p99_ms": round(ordered[int(REQUESTS * 0.99) - 1], 2),
         "max_ms": round(max(timings), 2),
     }
     Path("docs/latency.json").write_text(json.dumps(report, indent=2) + "\n")
