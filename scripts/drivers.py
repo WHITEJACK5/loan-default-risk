@@ -44,8 +44,7 @@ def main() -> None:
     lines = [
         "# Top risk drivers",
         "",
-        f"Mean |SHAP| per source feature over {len(index)} validation loans, "
-        "aggregated by `src/api/explain.py`.",
+        f"Mean |SHAP| per source feature over {len(index)} validation loans, aggregated by `src/api/explain.py`.",
         "",
         "| feature | mean contribution |",
         "|---|---|",

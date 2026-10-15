@@ -50,9 +50,7 @@ def render_block(metrics: dict) -> str:
         cells = [split]
         for name, key in COLUMNS:
             if key not in values:
-                raise SystemExit(
-                    f"metrics.json split {split!r} is missing {key!r} (rendered as {name!r})"
-                )
+                raise SystemExit(f"metrics.json split {split!r} is missing {key!r} (rendered as {name!r})")
             cells.append(_format(key, values[key]))
         rows.append("| " + " | ".join(cells) + " |")
     return "\n".join(rows)

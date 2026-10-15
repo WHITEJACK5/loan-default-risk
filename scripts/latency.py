@@ -16,12 +16,27 @@ from fastapi.testclient import TestClient
 from src.api.main import app
 
 PAYLOAD = {
-    "loan_amnt": 10000, "term": "36 months", "int_rate": 13.5, "installment": 300.0,
-    "grade": "C", "sub_grade": "C3", "emp_length": "5 years", "home_ownership": "RENT",
-    "annual_inc": 65000, "verification_status": "Verified", "purpose": "debt_consolidation",
-    "addr_state": "CA", "dti": 18.0, "delinq_2yrs": 0, "fico_range_low": 680,
-    "fico_range_high": 684, "inq_last_6mths": 1, "open_acc": 10, "revol_bal": 15000.0,
-    "revol_util": 45.0, "total_acc": 20,
+    "loan_amnt": 10000,
+    "term": "36 months",
+    "int_rate": 13.5,
+    "installment": 300.0,
+    "grade": "C",
+    "sub_grade": "C3",
+    "emp_length": "5 years",
+    "home_ownership": "RENT",
+    "annual_inc": 65000,
+    "verification_status": "Verified",
+    "purpose": "debt_consolidation",
+    "addr_state": "CA",
+    "dti": 18.0,
+    "delinq_2yrs": 0,
+    "fico_range_low": 680,
+    "fico_range_high": 684,
+    "inq_last_6mths": 1,
+    "open_acc": 10,
+    "revol_bal": 15000.0,
+    "revol_util": 45.0,
+    "total_acc": 20,
 }
 REQUESTS = 50
 

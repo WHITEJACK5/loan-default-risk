@@ -65,9 +65,7 @@ def main() -> None:
     }
     print(f"incumbent (5-fold ensemble): {result['incumbent_ensemble_true']}")
 
-    candidate = CalibratedClassifierCV(
-        estimator=build_model(lender_side="B"), method="isotonic", cv=5, ensemble=False
-    )
+    candidate = CalibratedClassifierCV(estimator=build_model(lender_side="B"), method="isotonic", cv=5, ensemble=False)
     candidate.fit(x_train, y_train)
     result["candidate_ensemble_false"] = evaluate(candidate, x_val, y_val)
     print(f"refit (ensemble=False)    : {result['candidate_ensemble_false']}")
