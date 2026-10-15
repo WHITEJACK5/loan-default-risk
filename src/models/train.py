@@ -70,10 +70,22 @@ def metrics(y, p) -> dict[str, float]:
     }
 
 
-def build_calibrated(cv: int = CALIBRATION_FOLDS) -> CalibratedClassifierCV:
-    """Wrap the lender-side-B pipeline in isotonic calibration."""
+def build_calibrated(
+    cv: int = CALIBRATION_FOLDS,
+    ensemble: bool = settings.calibration_ensemble,
+) -> CalibratedClassifierCV:
+    """Wrap the lender-side-B pipeline in isotonic calibration.
+
+    ``ensemble=True`` keeps one estimator per fold and averages them, so a
+    request runs the whole sklearn pipeline ``cv`` times -- 5.13x slower per
+    request for 0.0009 ROC and 0.0001 Brier on the 668k-row validation window
+    (scripts/calibration_tradeoff.py). ``ensemble=False`` refits a single
+    estimator on the full training set instead, and is the default for that
+    reason. Set ``LDR_CALIBRATION_ENSEMBLE=true`` to trade latency back for the
+    out-of-fold calibrator.
+    """
     base = build_model(lender_side="B")
-    return CalibratedClassifierCV(estimator=base, method="isotonic", cv=cv)
+    return CalibratedClassifierCV(estimator=base, method="isotonic", cv=cv, ensemble=ensemble)
 
 
 def main() -> None:
@@ -93,7 +105,8 @@ def main() -> None:
     artifacts.mkdir(parents=True, exist_ok=True)
 
     with mlflow.start_run(run_name="lgbm-isotonic-B") as run:
-        model = build_calibrated()
+        ensemble = settings.calibration_ensemble
+        model = build_calibrated(ensemble=ensemble)
         model.fit(x_train, y_train)
 
         scored_splits: dict[str, dict[str, object]] = {}
@@ -115,6 +128,7 @@ def main() -> None:
         meta = {
             "model": "calibrated-lightgbm-B-isotonic",
             "calibration_folds": CALIBRATION_FOLDS,
+            "calibration_ensemble": ensemble,
             "features": list(x_train.columns),
             "threshold": settings.threshold,
             "lgd": settings.lgd,

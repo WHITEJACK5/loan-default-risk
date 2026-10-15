@@ -65,6 +65,14 @@ class Settings(BaseSettings):
 
     # --- reproducibility ---
     seed: int = Field(default=42, ge=0)
+    calibration_ensemble: bool = Field(
+        default=False,
+        description=(
+            "True keeps one estimator per calibration fold and averages them, "
+            "costing 5.13x single-request latency for 0.0009 ROC; see "
+            "scripts/calibration_tradeoff.py"
+        ),
+    )
 
     # --- artifacts ---
     artifacts_dir: Path = Field(default=REPO_ROOT / "artifacts")
