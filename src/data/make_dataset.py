@@ -16,9 +16,9 @@ or the model silently learns a distribution it is never asked to score.
 
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
 
 from src.loan_default_risk.config import settings
 
@@ -103,6 +103,35 @@ def clean_numeric(frame: pd.DataFrame) -> dict[str, int]:
     return clipped
 
 
+def clean_categoricals(frame: pd.DataFrame) -> dict[str, int]:
+    """Normalise whitespace and casing on the categorical columns.
+
+    The raw corpus stores ``term`` as ``" 36 months"`` with a leading space.
+    OneHotEncoder(handle_unknown="ignore") then fits on the padded value and
+    maps a clean ``"36 months"`` request to an all-zero row, which scores
+    silently and looks like a valid prediction. Stripping at ingestion removes
+    the whole class of bug.
+
+    Returns:
+        Per-column count of values whose text changed.
+    """
+    changed: dict[str, int] = {}
+    for column in frame.columns:
+        # pandas 3.0 with pyarrow gives text columns the Arrow `str` dtype
+        # rather than `object`, so a dtype check against `object` alone skips
+        # them -- which is exactly how the padded `" 36 months"` survived.
+        if not pd.api.types.is_string_dtype(frame[column].dtype):
+            continue
+
+        original = frame[column]
+        stripped = original.astype("string").str.strip()
+        count = int((stripped.fillna("") != original.astype("string").fillna("")).sum())
+        if count:
+            changed[column] = count
+        frame[column] = stripped.astype(object).where(stripped.notna(), None)
+    return changed
+
+
 def main() -> None:
     _reject_leakage(ALLOW, "the feature allow-list")
 
@@ -122,6 +151,7 @@ def main() -> None:
 
     # Clip before splitting so every window sees the same feature contract.
     clipped = clean_numeric(resolved)
+    normalised = clean_categoricals(resolved)
 
     window_masks = {
         "train": resolved["issue_year"] <= settings.train_end,
@@ -131,6 +161,8 @@ def main() -> None:
     print(f"raw: {frame.shape} allow {len(ALLOW)} resolved {len(resolved)}")
     for column, count in sorted(clipped.items()):
         print(f"clipped {column} to the serving bounds: {count} rows")
+    for column, count in sorted(normalised.items()):
+        print(f"normalised {column} whitespace: {count} values")
 
     for name, mask in window_masks.items():
         subset = resolved[mask]
