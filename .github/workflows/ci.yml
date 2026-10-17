@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: {python-version: "3.11", cache: pip}
       - run: pip install ruff
       - run: ruff check .
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: {python-version: "3.11", cache: pip}
       - run: pip install mypy pandas scikit-learn lightgbm
       - run: mypy src
@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: {python-version: "3.11", cache: pip}
       - run: pip install bandit[toml]
       # -c points at pyproject.toml so the skip/ignore list is reviewed rather
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: {python-version: "3.11", cache: pip}
       # The metrics block in README is generated. This exits 1 when the
       # committed README disagrees with artifacts/metrics.json, so a metric
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with: {python-version: "3.11", cache: pip}
       - run: pip install -e ".[dev]"
       - run: pytest --cov=src --cov-report=term --cov-fail-under=5
