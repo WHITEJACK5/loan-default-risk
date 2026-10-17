@@ -65,7 +65,7 @@ jobs:
       # run that produced it. Without this, "p50 29 ms" and "val ROC 0.703" are
       # only as good as the last time somebody remembered to paste them.
       - name: persist measured artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: measured-evidence
           path: |
